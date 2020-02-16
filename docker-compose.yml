@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:5.7
+    container_name: dbvolume_sample
+    environment:
+      MYSQL_ROOT_PASSWORD: mypwd
+      MYSQL_DATABASE: test_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbvolume_sample:/var/lib/mysql
+  memcached:
+    container_name: memcached
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+  api:
+    build: ./docker-api
+    container_name: api
+    depends_on:
+      - db
+    volumes:
+      - ./api/:/var/www/html/
+    env_file:
+      - api-variables.env
+    ports:
+      - "81:80"
+    stdin_open: true
+    tty: true
+  web:
+    build: ./docker-web
+    container_name: web
+    depends_on:
+      - memcached
+      - redis
+      - api
+    volumes:
+      - ./frontend/:/var/www/html/
+    env_file:
+      - web-variables.env
+    ports:
+      - "80:80"
+    stdin_open: true
+    tty: true
+  redis:
+    container_name: redis
+    volumes:
+      - /tmp/redis:/data/
+    build: ./docker-redis
+    ports:
+      - "6379:6379"
+    stdin_open: true
+    tty: true
+volumes:
+  dbvolume_sample:
