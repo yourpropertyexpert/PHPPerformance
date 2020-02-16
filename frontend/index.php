@@ -1,6 +1,6 @@
 <?php
 
-const ITERATIONS = 100000;
+const ITERATIONS = 10000;
 const PRECISION = 5;
 
 include 'classes.php';
