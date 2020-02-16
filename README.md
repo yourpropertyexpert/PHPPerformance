@@ -7,7 +7,8 @@ For simulation purposes, it runs a "get a random number."
 # To Do
 
 - Just in a loop in the called file.
-- Calling a method each time
+- Calling a method that does the loop internally.
+- Calling a method from a loop on the page.
 - Calling a method that gets a number from memcached
 - Calling a method that gets a number from Redis
 - Calling a method that gets a number from MySQL using a transient database connection
