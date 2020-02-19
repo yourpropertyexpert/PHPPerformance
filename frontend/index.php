@@ -1,7 +1,9 @@
 <?php
 
-const ITERATIONS = 10000;
+const ITERATIONS = 2000;
 const PRECISION = 5;
+
+require_once '/var/www/vendor/autoload.php';
 
 include 'classes.php';
 
@@ -27,9 +29,20 @@ while ($i < ITERATIONS) {
 }
 $totalLoop = round(microtime(true) - $starttime, PRECISION);
 
+echo '<h2>Results</h2>';
+
+echo '<table><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
+
+echo "<tr><td>Simple loop</td>";
+echo "<td>$totalLoop s</td><td>1</td></tr>";
+flush();
+
 $starttime = microtime(true);
 $n = $myclass->getN(ITERATIONS);
 $classGetN = round(microtime(true) - $starttime, PRECISION);
+echo "<tr><td>Class - Single method call that did the iteration in a loop</td>";
+echo "<td>$classGetN s</td><td>".round($classGetN / $totalLoop, PRECISION)."</td></tr>";
+flush();
 
 $starttime = microtime(true);
 $i = 0;
@@ -38,30 +51,31 @@ while ($i < ITERATIONS) {
     $i++;
 }
 $classGet1 = round(microtime(true) - $starttime, PRECISION);
+echo "<tr><td>Class - Loop that called the method each time</td>";
+echo "<td>$classGet1 s</td><td>".round($classGet1 / $totalLoop, PRECISION)."</td></tr>";
+flush();
 
 $starttime = microtime(true);
 $n = $myclass->getNFromMemcached(ITERATIONS);
 $classGetNFromMemcached = round(microtime(true) - $starttime, PRECISION);
+echo "<tr><td>Class - Single method call, that ran a loop calling class shared memcached each time</td>";
+echo "<td>$classGetNFromMemcached s</td><td>".round($classGetNFromMemcached / $totalLoop, PRECISION)."</td></tr>";
+flush();
 
 $starttime = microtime(true);
 $n = $myclass->getNFromRedis(ITERATIONS);
 $classGetNFromRedis = round(microtime(true) - $starttime, PRECISION);
-
-
-echo '<h2>Results</h2>';
-
-echo '<table><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
-
-echo "<tr><td>Simple loop</td>";
-echo "<td>$totalLoop s</td><td>1</td></tr>";
-echo "<tr><td>Class - Single method call that did the iteration in a loop</td>";
-echo "<td>$classGetN s</td><td>".round($classGetN / $totalLoop, PRECISION)."</td></tr>";
-echo "<tr><td>Class - Loop that called the method each time</td>";
-echo "<td>$classGet1 s</td><td>".round($classGet1 / $totalLoop, PRECISION)."</td></tr>";
-echo "<tr><td>Class - Loop that called once, calling class shared memcached each time</td>";
-echo "<td>$classGetNFromMemcached s</td><td>".round($classGetNFromMemcached / $totalLoop, PRECISION)."</td></tr>";
-echo "<tr><td>Class - Loop that called once, calling class shared Redis each time</td>";
+echo "<tr><td>Class - Single method call, that ran a loop calling class shared Redis each time</td>";
 echo "<td>$classGetNFromRedis s</td><td>".round($classGetNFromRedis / $totalLoop, PRECISION)."</td></tr>";
+flush();
+
+$starttime = microtime(true);
+$n = $myclass->getNFromAPI(ITERATIONS);
+$classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
+flush();
+
+echo "<tr><td>Class - Single method call, that ran a loop calling class shared API each time</td>";
+echo "<td>$classGetNFromAPI s</td><td>".round($classGetNFromAPI / $totalLoop, PRECISION)."</td></tr>";
 
 
 echo '</tbody></table>';

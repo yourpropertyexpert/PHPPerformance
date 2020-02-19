@@ -2,6 +2,9 @@
 
 namespace MHL;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Promise;
+
 class Demo
 {
     private $memcached;
@@ -16,6 +19,8 @@ class Demo
         $this->memcached->addServer(self::MEMCACHEDSERVER, self::MEMCACHEDPORT);
         $this->redis = new \Redis();
         $this->redis->connect(self::REDISSERVER, self::REDISPORT);
+
+        $this->api = new Client();
         $i = 0;
         while ($i<$count) {
             $val = 1;
@@ -55,5 +60,15 @@ class Demo
             $i++;
         }
         return $n;
+    }
+
+    public function getNFromAPI($count)
+    {
+        $i = 0;
+        $n = 0;
+        while ($i < $count) {
+            $n = $n + (json_decode($this->api->request('GET', 'api/index.php')->getBody(), true));
+            $i++;
+        }
     }
 }
