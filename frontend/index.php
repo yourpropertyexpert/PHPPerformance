@@ -1,6 +1,6 @@
 <?php
 
-const ITERATIONS = 2000;
+const ITERATIONS = 5000;
 const PRECISION = 5;
 
 require_once '/var/www/vendor/autoload.php';
@@ -70,12 +70,18 @@ echo "<td>$classGetNFromRedis s</td><td>".round($classGetNFromRedis / $totalLoop
 flush();
 
 $starttime = microtime(true);
-$n = $myclass->getNFromAPI(ITERATIONS);
-$classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
+$n = $myclass->getNFromDBQuery(ITERATIONS);
+$classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
+echo "<tr><td>Class - Single method call, that ran a loop calling a new SQL query each time</td>";
+echo "<td>$classgetNFromDBQuery s</td><td>".round($classgetNFromDBQuery / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
+$starttime = microtime(true);
+$n = $myclass->getNFromAPI(ITERATIONS);
+$classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
 echo "<tr><td>Class - Single method call, that ran a loop calling class shared API each time</td>";
 echo "<td>$classGetNFromAPI s</td><td>".round($classGetNFromAPI / $totalLoop, PRECISION)."</td></tr>";
-
+flush();
 
 echo '</tbody></table>';
+echo '<p>Done</p>';

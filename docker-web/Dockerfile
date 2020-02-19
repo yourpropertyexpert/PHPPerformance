@@ -8,6 +8,8 @@ RUN chmod uga+x /usr/local/bin/install-php-extensions && sync
 RUN install-php-extensions memcached
 RUN install-php-extensions redis
 RUN install-php-extensions opcache
+RUN install-php-extensions mysqli
+
 
 RUN apt-get update
 RUN apt-get install -y git
