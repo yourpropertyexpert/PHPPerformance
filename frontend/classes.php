@@ -12,9 +12,9 @@ class Demo
 
     public function __construct($count)
     {
-        $this->memcached = new Memcached();
+        $this->memcached = new \Memcached();
         $this->memcached->addServer(self::MEMCACHEDSERVER, self::MEMCACHEDPORT);
-        $this->redis = new Redis();
+        $this->redis = new \Redis();
         $this->redis->connect(self::REDISSERVER, self::REDISPORT);
         $i = 0;
         while ($i<$count) {

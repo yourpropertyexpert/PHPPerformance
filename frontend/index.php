@@ -13,7 +13,7 @@ with no frameworks or classes</p>';
 echo '<p>The "something" is generating a set of random numbers, and summing them</p>';
 echo '<p><i>Pre-seeding the various data structures, so that all we are seeing is the output times...</i></p>';
 flush();
-$myclass = new Demo(ITERATIONS);
+$myclass = new MHL\Demo(ITERATIONS);
 
 echo "<p><i>Running ".ITERATIONS." iterations of each loop. You can change this number be modifying the
 constant at the top of frontend/index.php</i></p>";
