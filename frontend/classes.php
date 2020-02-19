@@ -1,5 +1,7 @@
 <?php
 
+namespace MHL;
+
 class Demo
 {
     private $memcached;
