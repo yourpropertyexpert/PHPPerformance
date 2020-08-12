@@ -1,7 +1,8 @@
 <?php
 
-const ITERATIONS = 5000;
+const ITERATIONS = 500;
 const PRECISION = 5;
+const NUMBERFORMAT = 8;
 
 require_once '/var/www/vendor/autoload.php';
 
@@ -10,6 +11,8 @@ include 'functions.php';
 
 // We do NOT use a Template builder
 // This is because we want to keep flushing the output after each test type
+
+echo '<head><script src="https://code.highcharts.com/highcharts.js"></script></head>';
 
 echo '<h1>PHP Performance tester</h1>';
 
@@ -37,12 +40,12 @@ echo '<h2>Results</h2>';
 
 echo '<table><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
 
-echo "<tr><td>Simple loop</td>";
+echo "<tr><td>Page: Simple loop</td>";
 echo "<td>$totalLoop s</td><td>1</td></tr>";
 flush();
 
-loopMeUnparameterised();
-loopMeParameterised(ITERATIONS);
+$unparamtime = loopMeUnparameterised();
+$paramtime = loopMeParameterised(ITERATIONS);
 
 
 $starttime = microtime(true);
@@ -69,30 +72,190 @@ flush();
 $starttime = microtime(true);
 $n = $myclass->getNFromMemcached(ITERATIONS);
 $classGetNFromMemcached = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call, that ran a loop calling class shared memcached each time</td>";
+echo "<tr><td>External - Single method call, that ran a loop calling class shared memcached each time</td>";
 echo "<td>$classGetNFromMemcached s</td><td>".round($classGetNFromMemcached / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
 $starttime = microtime(true);
 $n = $myclass->getNFromRedis(ITERATIONS);
 $classGetNFromRedis = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call, that ran a loop calling class shared Redis each time</td>";
+echo "<tr><td>External - Single method call, that ran a loop calling class shared Redis each time</td>";
 echo "<td>$classGetNFromRedis s</td><td>".round($classGetNFromRedis / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
 $starttime = microtime(true);
 $n = $myclass->getNFromDBQuery(ITERATIONS);
 $classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call, that ran a loop calling a new SQL query each time</td>";
+echo "<tr><td>External - Single method call, that ran a loop calling a new SQL query each time</td>";
 echo "<td>$classgetNFromDBQuery s</td><td>".round($classgetNFromDBQuery / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
 $starttime = microtime(true);
 $n = $myclass->getNFromAPI(ITERATIONS);
 $classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call, that ran a loop calling class shared API each time</td>";
+echo "<tr><td>External - Single method call, that ran a loop calling class shared API each time</td>";
 echo "<td>$classGetNFromAPI s</td><td>".round($classGetNFromAPI / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
+
 echo '</tbody></table>';
-echo '<p>Done</p>';
+
+
+echo "<div id='container' style='width:100%; height:400px;'></div>";
+echo "<div id='container2' style='width:100%; height:400px;'></div>";
+echo "<script>
+document.addEventListener('DOMContentLoaded', function () {
+        var myChart = Highcharts.chart('container', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Timings in seconds - Logarithmic axis'
+            },
+            xAxis: {
+                categories: [
+                    'Simple loop',
+                    'Local unparameterised function',
+                    'Local parameterised function',
+                    'Loop inside a single method call',
+                    'Method called once per iteration',
+                    'Memcached',
+                    'Redis',
+                    'SQL',
+                    'API',
+                ]
+            },
+            yAxis: {
+                type: 'logarithmic',
+                minorTickInterval: 'auto'
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false
+                    }
+                }
+            },
+            series: [{
+                name: 'On-page looping',
+                data: [
+                    ".number_format($totalLoop, NUMBERFORMAT).",
+                    ".number_format($unparamtime, NUMBERFORMAT).",
+                    ".number_format($paramtime, NUMBERFORMAT).",
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                name: 'Class-based looping',
+                data: [
+                    0,
+                    0,
+                    0,
+                    ".number_format($classGetN, NUMBERFORMAT).",
+                    ".number_format($classGet1, NUMBERFORMAT).",
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                name: 'External data source',
+                data: [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    $classGetNFromMemcached,
+                    $classGetNFromRedis,
+                    $classgetNFromDBQuery,
+                    $classGetNFromAPI
+                ]
+            }
+        ]
+        });
+    });
+    </script>";
+    echo "<script>
+    document.addEventListener('DOMContentLoaded', function () {
+            var myChart = Highcharts.chart('container2', {
+                chart: {
+                    type: 'column'
+                },
+                title: {
+                    text: 'Timings in seconds - Linear axis'
+                },
+                xAxis: {
+                    categories: [
+                        'Simple loop',
+                        'Local unparameterised function',
+                        'Local parameterised function',
+                        'Loop inside a single method call',
+                        'Method called once per iteration',
+                        'Memcached',
+                        'Redis',
+                        'SQL',
+                        'API',
+                    ]
+                },
+                plotOptions: {
+                    column: {
+                        stacking: 'normal',
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                },
+                series: [{
+                    name: 'On-page looping',
+                    data: [
+                        ".number_format($totalLoop, NUMBERFORMAT).",
+                        ".number_format($unparamtime, NUMBERFORMAT).",
+                        ".number_format($paramtime, NUMBERFORMAT).",
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                {
+                    name: 'Class-based looping',
+                    data: [
+                        0,
+                        0,
+                        0,
+                        ".number_format($classGetN, NUMBERFORMAT).",
+                        ".number_format($classGet1, NUMBERFORMAT).",
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                {
+                    name: 'External data source',
+                    data: [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        $classGetNFromMemcached,
+                        $classGetNFromRedis,
+                        $classgetNFromDBQuery,
+                        $classGetNFromAPI
+                    ]
+                }
+            ]
+            });
+        });
+        </script>";
