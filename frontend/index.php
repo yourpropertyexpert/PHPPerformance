@@ -6,6 +6,10 @@ const PRECISION = 5;
 require_once '/var/www/vendor/autoload.php';
 
 include 'classes.php';
+include 'functions.php';
+
+// We do NOT use a Template builder
+// This is because we want to keep flushing the output after each test type
 
 echo '<h1>PHP Performance tester</h1>';
 
@@ -37,10 +41,14 @@ echo "<tr><td>Simple loop</td>";
 echo "<td>$totalLoop s</td><td>1</td></tr>";
 flush();
 
+loopMeUnparameterised();
+loopMeParameterised(ITERATIONS);
+
+
 $starttime = microtime(true);
 $n = $myclass->getN(ITERATIONS);
 $classGetN = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call that did the iteration in a loop</td>";
+echo "<tr><td>Class - Single method call that did the iteration in the method</td>";
 echo "<td>$classGetN s</td><td>".round($classGetN / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
@@ -51,9 +59,12 @@ while ($i < ITERATIONS) {
     $i++;
 }
 $classGet1 = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Loop that called the method each time</td>";
+echo "<tr><td>Class - Call the method multiple times from a loop in the calling page</td>";
 echo "<td>$classGet1 s</td><td>".round($classGet1 / $totalLoop, PRECISION)."</td></tr>";
 flush();
+
+
+
 
 $starttime = microtime(true);
 $n = $myclass->getNFromMemcached(ITERATIONS);
