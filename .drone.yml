@@ -1,10 +1,6 @@
 kind: pipeline
 name: DroneForPHP
 steps:
-- name: PSR2
-  image:  herloct/phpcs
-  commands:
-  - phpcs --standard=PSR1,PSR2 /drone/src
 - name: Embedded Configuration (Magic Numbers)
   image: dockerizedphp/phpmnd
   commands:
@@ -49,3 +45,7 @@ steps:
   image: rvannauker/phpcpd
   commands:
   - phpcpd /drone/src
+- name: PSR2 (will fail because of the way we're using local function)
+  image:  herloct/phpcs
+  commands:
+  - phpcs --standard=PSR1,PSR2 /drone/src
