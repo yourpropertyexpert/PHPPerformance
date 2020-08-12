@@ -7,6 +7,9 @@ require_once '/var/www/vendor/autoload.php';
 
 include 'classes.php';
 
+// We do NOT use a Template builder
+// This is because we want to keep flushing the output after each test type
+
 echo '<h1>PHP Performance tester</h1>';
 
 echo '<p>The purpose of this code is to see how fast (relative to each other)
@@ -37,10 +40,14 @@ echo "<tr><td>Simple loop</td>";
 echo "<td>$totalLoop s</td><td>1</td></tr>";
 flush();
 
+loopMeUnparameterised();
+loopMeParameterised(ITERATIONS);
+
+
 $starttime = microtime(true);
 $n = $myclass->getN(ITERATIONS);
 $classGetN = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call that did the iteration in a loop</td>";
+echo "<tr><td>Class - Single method call that did the iteration in the method</td>";
 echo "<td>$classGetN s</td><td>".round($classGetN / $totalLoop, PRECISION)."</td></tr>";
 flush();
 
@@ -51,9 +58,12 @@ while ($i < ITERATIONS) {
     $i++;
 }
 $classGet1 = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Loop that called the method each time</td>";
+echo "<tr><td>Class - Call the method multiple times from a loop in the calling page</td>";
 echo "<td>$classGet1 s</td><td>".round($classGet1 / $totalLoop, PRECISION)."</td></tr>";
 flush();
+
+
+
 
 $starttime = microtime(true);
 $n = $myclass->getNFromMemcached(ITERATIONS);
@@ -85,3 +95,31 @@ flush();
 
 echo '</tbody></table>';
 echo '<p>Done</p>';
+
+function loopMeUnparameterised() {
+    $starttime = microtime(true);
+    $n = 0;
+    $i = 0;
+    while ($i < ITERATIONS) {
+        $n = $n+rand();
+        $i++;
+    }
+    $unparameterisedFunction = round(microtime(true) - $starttime, PRECISION);
+    echo "<tr><td>Unparameterised local function</td>";
+    echo "<td>$unparameterisedFunction s</td><td>1</td></tr>";
+    flush();
+}
+
+function loopMeParameterised($count) {
+    $starttime = microtime(true);
+    $n = 0;
+    $i = 0;
+    while ($i < $count) {
+        $n = $n+rand();
+        $i++;
+    }
+    $unparameterisedFunction = round(microtime(true) - $starttime, PRECISION);
+    echo "<tr><td>Parameterised local function</td>";
+    echo "<td>$unparameterisedFunction s</td><td>1</td></tr>";
+    flush();
+}

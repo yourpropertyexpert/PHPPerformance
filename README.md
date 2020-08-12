@@ -16,6 +16,8 @@ It gets that random number a lot of different ways. After each one, it outputs t
 # What methods are currently there
 
 - A simple loop on a PHP page
+- Run a local function (parameterised) that does the loop
+- Run a local function (unparameterised - using constants to control number of iterations) that does the loop 
 - Class - Single method call that did the iteration in a loop
 - Class - Loop that called the method each time
 - Class - Single method call, that ran a loop calling class shared memcached each time
