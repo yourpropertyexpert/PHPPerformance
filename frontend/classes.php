@@ -12,6 +12,7 @@ class Demo
     private const REDISSERVER = "redis";
     private const MEMCACHEDPORT = 6379;
     private const MEMCACHEDSERVER = "memcached";
+    private const DBSERVER = "db";
     private $db;
 
     public function __construct($count)
@@ -20,7 +21,7 @@ class Demo
         $this->memcached->addServer(self::MEMCACHEDSERVER, self::MEMCACHEDPORT);
         $this->redis = new \Redis();
         $this->redis->connect(self::REDISSERVER, self::REDISPORT);
-        $this->db = new \mysqli("db", "root", "mypwd", "test_db");
+        $this->db = new \mysqli(self::DBSERVER, "root", "mypwd", "test_db");
 
         $this->api = new Client();
         $i = 0;
