@@ -1,6 +1,7 @@
 <?php
 
-function loopMeUnparameterised() {
+function loopMeUnparameterised()
+{
     $starttime = microtime(true);
     $n = 0;
     $i = 0;
@@ -14,7 +15,8 @@ function loopMeUnparameterised() {
     flush();
 }
 
-function loopMeParameterised($count) {
+function loopMeParameterised($count)
+{
     $starttime = microtime(true);
     $n = 0;
     $i = 0;
