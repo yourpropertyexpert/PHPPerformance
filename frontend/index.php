@@ -6,6 +6,7 @@ const PRECISION = 5;
 require_once '/var/www/vendor/autoload.php';
 
 include 'classes.php';
+include 'functions.php';
 
 // We do NOT use a Template builder
 // This is because we want to keep flushing the output after each test type
@@ -95,31 +96,3 @@ flush();
 
 echo '</tbody></table>';
 echo '<p>Done</p>';
-
-function loopMeUnparameterised() {
-    $starttime = microtime(true);
-    $n = 0;
-    $i = 0;
-    while ($i < ITERATIONS) {
-        $n = $n+rand();
-        $i++;
-    }
-    $unparameterisedFunction = round(microtime(true) - $starttime, PRECISION);
-    echo "<tr><td>Unparameterised local function</td>";
-    echo "<td>$unparameterisedFunction s</td><td>1</td></tr>";
-    flush();
-}
-
-function loopMeParameterised($count) {
-    $starttime = microtime(true);
-    $n = 0;
-    $i = 0;
-    while ($i < $count) {
-        $n = $n+rand();
-        $i++;
-    }
-    $unparameterisedFunction = round(microtime(true) - $starttime, PRECISION);
-    echo "<tr><td>Parameterised local function</td>";
-    echo "<td>$unparameterisedFunction s</td><td>1</td></tr>";
-    flush();
-}
