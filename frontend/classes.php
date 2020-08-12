@@ -23,7 +23,7 @@ class Demo
         $this->redis->connect(self::REDISSERVER, self::REDISPORT);
         $this->db = new \mysqli(self::DBSERVER, "root", "mypwd", "test_db");
 
-        $this->api = new Client();
+        $this->api = new Client(); // Guzzle client
         $i = 0;
         while ($i<$count) {
             $val = 1;

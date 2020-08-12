@@ -24,8 +24,12 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - Class - Single method call, that ran a loop calling class which uses Guzzle to call an API each time
 
 
-# To Do
+# To Do (new algorithms)
 
 - Calling a method that gets a number by making a Guzzle multi-call
 - DB using prepared statements bound each time
 - DB using prepared statements bound once
+
+# To Do (other)
+
+- Some graphical display of the results
