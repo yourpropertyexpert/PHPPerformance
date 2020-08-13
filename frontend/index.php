@@ -89,24 +89,30 @@ showResultRow('Class: Call the method multiple times from a loop in the calling 
 $starttime = microtime(true);
 $n = $myclass->getNFromMemcached($Iterations);
 $classGetNFromMemcached = microtime(true) - $starttime;
-showResultRow('External: Single method call, that ran a loop calling class shared memcached each time', $classGetNFromMemcached);
+showResultRow('External: Single method call, that ran a loop calling class shared memcached each time',
+    $classGetNFromMemcached);
 
 $starttime = microtime(true);
 $n = $myclass->getNFromRedis($Iterations);
 $classGetNFromRedis = round(microtime(true) - $starttime, PRECISION);
-showResultRow('External: Single method call, that ran a loop calling class shared Redis each time', $classGetNFromRedis);
+showResultRow('External: Single method call, that ran a loop calling class shared Redis each time',
+    $classGetNFromRedis);
 
 $starttime = microtime(true);
 $n = $myclass->getNFromDBQuery($Iterations);
 $classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
-showResultRow('External: Single method call, that ran a loop calling a new SQL query each time', $classgetNFromDBQuery);
+showResultRow('External: Single method call, that ran a loop calling a new SQL query each time',
+    $classgetNFromDBQuery);
 
 $starttime = microtime(true);
 $n = $myclass->getNFromAPI($Iterations);
 $classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
-showResultRow('External: Single method call, that ran a loop calling class shared API each time', $classGetNFromAPI);
+showResultRow('External: Single method call, that ran a loop calling class shared API each time',
+    $classGetNFromAPI);
 
-foreach (['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1', 'classGetNFromMemcached', 'classGetNFromRedis', 'classgetNFromDBQuery', 'classGetNFromAPI'] as $var) {
+foreach (['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
+          'classGetNFromMemcached', 'classGetNFromRedis',
+          'classgetNFromDBQuery', 'classGetNFromAPI'] as $var) {
     $$var = number_format($$var, NUMBERFORMAT);
 }
 
