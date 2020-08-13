@@ -12,98 +12,110 @@ include 'functions.php';
 // We do NOT use a Template builder
 // This is because we want to keep flushing the output after each test type
 
-echo '<head><script src="https://code.highcharts.com/highcharts.js"></script></head>';
+echo <<< PAGE_TOP
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <style type='text/css'>
+    #resultsTable th, #resultsTable td { text-align: right; }
+    #resultsTable th:first-child, #resultsTable td:first-child { text-align: left; }
+  </style>
+</head>
+<body>
+<h1>PHP Performance tester</h1>
+<p>The purpose of this code is to see how fast (relative to each other)
+different ways of “doing something” are in PHP. The code is deliberately ultra-lightweight,
+with no frameworks or classes.</p>
+<p>The “something” is generating a set of random numbers, and summing them.</p>
+<p><i>Pre-seeding the various data structures, so that all we are seeing is the output times...</i></p>
 
-echo '<h1>PHP Performance tester</h1>';
-
-echo '<p>The purpose of this code is to see how fast (relative to each other)
-different ways of "doing something" are in PHP. The code is deliberately ultra-lightweight,
-with no frameworks or classes</p>';
-echo '<p>The "something" is generating a set of random numbers, and summing them</p>';
-echo '<p><i>Pre-seeding the various data structures, so that all we are seeing is the output times...</i></p>';
+PAGE_TOP;
 flush();
-$myclass = new MHL\Demo(ITERATIONS);
 
-echo "<p><i>Running ".ITERATIONS." iterations of each loop. You can change this number be modifying the
-constant at the top of frontend/index.php</i></p>";
+$Iterations = (empty($_REQUEST['I']) || !is_numeric($_REQUEST['I'])) ? ITERATIONS : (int)$_REQUEST['I'];
+$myclass = new MHL\Demo($Iterations);
+
+// $_SERVER['SCRIPT_URI'] is set by mod_rewrite, but not otherwise.
+if (empty($_SERVER['SCRIPT_URI'])) {
+    $_SERVER['SCRIPT_URI'] = (!empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] != 'off')) ? 'https' : 'http';
+    $_SERVER['SCRIPT_URI'] .= "://$_SERVER[SERVER_NAME]$_SERVER[SCRIPT_NAME]";
+}
+
+echo '<p><i>Running ', number_format($Iterations), " iterations of each loop. You can change this number by ";
+if (strpos($_SERVER['QUERY_STRING'], 'I=') === false) {
+    echo "adding an I= parameter to this page (eg $_SERVER[SCRIPT_URI]?I=1234)";
+} else {
+    echo "changing the value of the I= parameter to this page";
+}
+echo ", or by modifying the constant at the top of frontend/index.php</i></p>";
 flush();
+
 $starttime = microtime(true);
 $i = 0;
 $n = 0;
-while ($i < ITERATIONS) {
+while ($i < $Iterations) {
     $n = $n+rand();
     $i++;
 }
-$totalLoop = round(microtime(true) - $starttime, PRECISION);
+$totalLoop = microtime(true) - $starttime;
 
 echo '<h2>Results</h2>';
 
-echo '<table><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
+echo '<table id="resultsTable"><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
 
-echo "<tr><td>Page: Simple loop</td>";
-echo "<td>$totalLoop s</td><td>1</td></tr>";
-flush();
+showResultRow('Page: Simple loop', $totalLoop);
 
 $unparamtime = loopMeUnparameterised();
-$paramtime = loopMeParameterised(ITERATIONS);
+showResultRow('Page: Unparameterised local function', $unparamtime);
 
+$paramtime = loopMeParameterised($Iterations);
+showResultRow('Page: Parameterised local function', $paramtime);
 
 $starttime = microtime(true);
-$n = $myclass->getN(ITERATIONS);
-$classGetN = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Single method call that did the iteration in the method</td>";
-echo "<td>$classGetN s</td><td>".round($classGetN / $totalLoop, PRECISION)."</td></tr>";
-flush();
+$n = $myclass->getN($Iterations);
+$classGetN = microtime(true) - $starttime;
+showResultRow('Class: Single method call that did the iteration in the method', $classGetN);
 
 $starttime = microtime(true);
 $i = 0;
-while ($i < ITERATIONS) {
+while ($i < $Iterations) {
     $myclass->getN(1);
     $i++;
 }
-$classGet1 = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>Class - Call the method multiple times from a loop in the calling page</td>";
-echo "<td>$classGet1 s</td><td>".round($classGet1 / $totalLoop, PRECISION)."</td></tr>";
-flush();
-
-
-
+$classGet1 = microtime(true) - $starttime;
+showResultRow('Class: Call the method multiple times from a loop in the calling page', $classGet1);
 
 $starttime = microtime(true);
-$n = $myclass->getNFromMemcached(ITERATIONS);
-$classGetNFromMemcached = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>External - Single method call, that ran a loop calling class shared memcached each time</td>";
-echo "<td>$classGetNFromMemcached s</td><td>".round($classGetNFromMemcached / $totalLoop, PRECISION)."</td></tr>";
-flush();
+$n = $myclass->getNFromMemcached($Iterations);
+$classGetNFromMemcached = microtime(true) - $starttime;
+showResultRow('External: Single method call, that ran a loop calling class shared memcached each time', $classGetNFromMemcached);
 
 $starttime = microtime(true);
-$n = $myclass->getNFromRedis(ITERATIONS);
+$n = $myclass->getNFromRedis($Iterations);
 $classGetNFromRedis = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>External - Single method call, that ran a loop calling class shared Redis each time</td>";
-echo "<td>$classGetNFromRedis s</td><td>".round($classGetNFromRedis / $totalLoop, PRECISION)."</td></tr>";
-flush();
+showResultRow('External: Single method call, that ran a loop calling class shared Redis each time', $classGetNFromRedis);
 
 $starttime = microtime(true);
-$n = $myclass->getNFromDBQuery(ITERATIONS);
+$n = $myclass->getNFromDBQuery($Iterations);
 $classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>External - Single method call, that ran a loop calling a new SQL query each time</td>";
-echo "<td>$classgetNFromDBQuery s</td><td>".round($classgetNFromDBQuery / $totalLoop, PRECISION)."</td></tr>";
-flush();
+showResultRow('External: Single method call, that ran a loop calling a new SQL query each time', $classgetNFromDBQuery);
 
 $starttime = microtime(true);
-$n = $myclass->getNFromAPI(ITERATIONS);
+$n = $myclass->getNFromAPI($Iterations);
 $classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
-echo "<tr><td>External - Single method call, that ran a loop calling class shared API each time</td>";
-echo "<td>$classGetNFromAPI s</td><td>".round($classGetNFromAPI / $totalLoop, PRECISION)."</td></tr>";
-flush();
+showResultRow('External: Single method call, that ran a loop calling class shared API each time', $classGetNFromAPI);
 
+foreach (['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1', 'classGetNFromMemcached', 'classGetNFromRedis', 'classgetNFromDBQuery', 'classGetNFromAPI'] as $var) {
+    $$var = number_format($$var, NUMBERFORMAT);
+}
 
-echo '</tbody></table>';
+echo <<< PAGE_END
+</tbody></table>
 
-
-echo "<div id='container' style='width:100%; height:400px;'></div>";
-echo "<div id='container2' style='width:100%; height:400px;'></div>";
-echo "<script>
+<div id='container' style='width:100%; height:400px;'></div>
+<div id='container2' style='width:100%; height:400px;'></div>
+<script>
 document.addEventListener('DOMContentLoaded', function () {
         var myChart = Highcharts.chart('container', {
             chart: {
@@ -140,9 +152,9 @@ document.addEventListener('DOMContentLoaded', function () {
             series: [{
                 name: 'On-page looping',
                 data: [
-                    ".number_format($totalLoop, NUMBERFORMAT).",
-                    ".number_format($unparamtime, NUMBERFORMAT).",
-                    ".number_format($paramtime, NUMBERFORMAT).",
+                    $totalLoop,
+                    $unparamtime,
+                    $paramtime,
                     0,
                     0,
                     0,
@@ -157,8 +169,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     0,
                     0,
                     0,
-                    ".number_format($classGetN, NUMBERFORMAT).",
-                    ".number_format($classGet1, NUMBERFORMAT).",
+                    $classGetN,
+                    $classGet1,
                     0,
                     0,
                     0,
@@ -182,8 +194,8 @@ document.addEventListener('DOMContentLoaded', function () {
         ]
         });
     });
-    </script>";
-    echo "<script>
+</script>
+<script>
     document.addEventListener('DOMContentLoaded', function () {
             var myChart = Highcharts.chart('container2', {
                 chart: {
@@ -216,9 +228,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 series: [{
                     name: 'On-page looping',
                     data: [
-                        ".number_format($totalLoop, NUMBERFORMAT).",
-                        ".number_format($unparamtime, NUMBERFORMAT).",
-                        ".number_format($paramtime, NUMBERFORMAT).",
+                        $totalLoop,
+                        $unparamtime,
+                        $paramtime,
                         0,
                         0,
                         0,
@@ -233,8 +245,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         0,
                         0,
                         0,
-                        ".number_format($classGetN, NUMBERFORMAT).",
-                        ".number_format($classGet1, NUMBERFORMAT).",
+                        $classGetN,
+                        $classGet1,
                         0,
                         0,
                         0,
@@ -258,4 +270,8 @@ document.addEventListener('DOMContentLoaded', function () {
             ]
             });
         });
-        </script>";
+</script>
+</body>
+</html>
+
+PAGE_END;
