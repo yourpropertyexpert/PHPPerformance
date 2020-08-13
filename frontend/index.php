@@ -90,32 +90,32 @@ $starttime = microtime(true);
 $n = $myclass->getNFromMemcached($Iterations);
 $classGetNFromMemcached = microtime(true) - $starttime;
 showResultRow(
-'External: Single method call, that ran a loop calling class shared memcached each time',
-$classGetNFromMemcached
+    'External: Single method call, that ran a loop calling class shared memcached each time',
+    $classGetNFromMemcached
 );
 
 $starttime = microtime(true);
 $n = $myclass->getNFromRedis($Iterations);
 $classGetNFromRedis = round(microtime(true) - $starttime, PRECISION);
 showResultRow(
-'External: Single method call, that ran a loop calling class shared Redis each time',
-$classGetNFromRedis
+    'External: Single method call, that ran a loop calling class shared Redis each time',
+    $classGetNFromRedis
 );
 
 $starttime = microtime(true);
 $n = $myclass->getNFromDBQuery($Iterations);
 $classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
 showResultRow(
-'External: Single method call, that ran a loop calling a new SQL query each time',
-$classgetNFromDBQuery
+    'External: Single method call, that ran a loop calling a new SQL query each time',
+    $classgetNFromDBQuery
 );
 
 $starttime = microtime(true);
 $n = $myclass->getNFromAPI($Iterations);
 $classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
 showResultRow(
-'External: Single method call, that ran a loop calling class shared API each time',
-$classGetNFromAPI
+    'External: Single method call, that ran a loop calling class shared API each time',
+    $classGetNFromAPI
 );
 
 foreach (['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
