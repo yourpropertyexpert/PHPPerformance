@@ -111,6 +111,14 @@ showResultRow(
 );
 
 $starttime = microtime(true);
+$n = $myclass->getNFromDBQueryInOneGo($Iterations);
+$classgetNFromDBQueryInOneGo = round(microtime(true) - $starttime, PRECISION);
+showResultRow(
+    'External: Single method call, that ran one SQL query then looped over the returned data',
+    $classgetNFromDBQueryInOneGo
+);
+
+$starttime = microtime(true);
 $n = $myclass->getNFromAPI($Iterations);
 $classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
 showResultRow(
@@ -120,7 +128,7 @@ showResultRow(
 
 $times = ['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
           'classGetNFromMemcached', 'classGetNFromRedis',
-          'classgetNFromDBQuery', 'classGetNFromAPI'];
+          'classgetNFromDBQuery', 'classgetNFromDBQueryInOneGo', 'classGetNFromAPI'];
 foreach ($times as $var) {
     $$var = number_format($$var, NUMBERFORMAT);
 }
@@ -148,7 +156,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Method called once per iteration',
                     'Memcached',
                     'Redis',
-                    'SQL',
+                    'SQL (n queries)',
+                    'SQL (one query)',
                     'API',
                 ]
             },
@@ -175,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     0,
                     0,
                     0,
+                    0,
                     0
                 ]
             },
@@ -186,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     0,
                     $classGetN,
                     $classGet1,
+                    0,
                     0,
                     0,
                     0,
@@ -203,6 +214,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     $classGetNFromMemcached,
                     $classGetNFromRedis,
                     $classgetNFromDBQuery,
+                    $classgetNFromDBQueryInOneGo,
                     $classGetNFromAPI
                 ]
             }
@@ -228,7 +240,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Method called once per iteration',
                         'Memcached',
                         'Redis',
-                        'SQL',
+                        'SQL (n queries)',
+                        'SQL (one query)',
                         'API',
                     ]
                 },
@@ -251,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         0,
                         0,
                         0,
+                        0,
                         0
                     ]
                 },
@@ -262,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         0,
                         $classGetN,
                         $classGet1,
+                        0,
                         0,
                         0,
                         0,
@@ -279,6 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         $classGetNFromMemcached,
                         $classGetNFromRedis,
                         $classgetNFromDBQuery,
+                        $classgetNFromDBQueryInOneGo,
                         $classGetNFromAPI
                     ]
                 }

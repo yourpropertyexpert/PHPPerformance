@@ -121,4 +121,24 @@ class Demo
         }
         return $n;
     }
+
+    public function getNFromDBQueryInOneGo($count)
+    {
+        // Get all the data from the database
+        $data = [];
+        $result = $this->db->query("SELECT ID, Val FROM $this->sqlTable", MYSQLI_USE_RESULT);
+        while ($row = $result->fetch_row()) {
+            $data[$row[0]] = $row[1];
+        }
+        $result->free();
+
+        // Now read and sum the numbers
+        $i = 0;
+        $n = 0;
+        while ($i < $count) {
+            $n += $data[$i];
+            ++$i;
+        }
+        return $n;
+    }
 }
