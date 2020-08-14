@@ -17,7 +17,9 @@ echo <<< PAGE_TOP
 <html lang="en-gb">
 <head>
   <script src="https://code.highcharts.com/highcharts.js"></script>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
 
 </head>
 <body>
@@ -30,7 +32,9 @@ with no frameworks or classes.</p>
 <p>The “something” is generating a set of random numbers, and summing them.</p>
 </div>
 <div class="container">
-<div class='alert alert-success'>Pre-seeding the various data structures, so that all we are seeing is the output times...</div>
+<div class='alert alert-success'>
+    Pre-seeding the various data structures, so that all we are seeing is the output times...
+</div>
 
 PAGE_TOP;
 flush();
@@ -58,7 +62,9 @@ $totalLoop = microtime(true) - $starttime;
 
 echo '<h2>Results</h2>';
 
-echo '<table class="table table-striped" id="resultsTable"><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
+echo '<table class="table table-striped" id="resultsTable">
+    <thead><th>Method</th><th>Time</th><th>Factor</th></thead>
+    <tbody>';
 
 showResultRow('Page: Simple loop', $totalLoop);
 
