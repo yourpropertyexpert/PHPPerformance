@@ -13,7 +13,9 @@ class Demo
     private const MEMCACHEDPORT = 6379;
     private const MEMCACHEDSERVER = "memcached";
     private const DBSERVER = "db";
+    private const MAX_SQL_LENGTH = 1000000;
     private $db;
+    private $sqlTable;
 
     public function __construct($count)
     {
@@ -24,13 +26,44 @@ class Demo
         $this->db = new \mysqli(self::DBSERVER, "root", "mypwd", "test_db");
 
         $this->api = new Client(); // Guzzle client
+
+        // Create a SQL table with a (hopefully!) unique name
+        $this->sqlTable = uniqid('TB');
+        $this->db->query(
+            "CREATE TABLE IF NOT EXISTS $this->sqlTable (
+                ID INT UNSIGNED NOT NULL PRIMARY KEY,
+                Val INT UNSIGNED NOT NULL
+                ) ENGINE=InnoDB"
+        );
+
+        // For speed, we build big  multi-value INSERTs, though we need to
+        // be careful the statements don't get too big - we assume a
+        // conservative maximum of 1MB
+        $sql = '';
         $i = 0;
         while ($i < $count) {
-            $val = 1;
+            $val = rand();
             $this->memcached->set($i, $val);
             $this->redis->set($i, $val);
+            if ($sql) {
+                $sql .= ",($i,$val)";
+            } else {
+                $sql = "INSERT INTO $this->sqlTable (ID,Val) VALUES ($i,$val)";
+            }
+            if (strlen($sql) >= self::MAX_SQL_LENGTH) {
+                $this->db->query($sql);
+                $sql = '';
+            }
             $i++;
         }
+        if ($sql) {
+            $this->db->query($sql);
+        }
+    }
+
+    public function __destruct()
+    {
+        $this->db->query("DROP TABLE $this->sqlTable");
     }
 
     public function getN($count)
@@ -81,11 +114,30 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $sql = "SELECT RAND()";
-            $result = $this->db->query($sql);
+            $result = $this->db->query("SELECT Val FROM $this->sqlTable WHERE ID=$i");
             $number = $result->fetch_row()[0];
             $n = $n + $number;
             $i++;
+        }
+        return $n;
+    }
+
+    public function getNFromDBQueryInOneGo($count)
+    {
+        // Get all the data from the database
+        $data = [];
+        $result = $this->db->query("SELECT ID, Val FROM $this->sqlTable", MYSQLI_USE_RESULT);
+        while ($row = $result->fetch_row()) {
+            $data[$row[0]] = $row[1];
+        }
+        $result->free();
+
+        // Now read and sum the numbers
+        $i = 0;
+        $n = 0;
+        while ($i < $count) {
+            $n += $data[$i];
+            ++$i;
         }
         return $n;
     }
