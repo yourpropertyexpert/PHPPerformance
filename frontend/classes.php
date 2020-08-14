@@ -8,22 +8,34 @@ use GuzzleHttp\Promise;
 class Demo
 {
     private $memcached;
-    private const REDISPORT = 6379;
-    private const REDISSERVER = "redis";
-    private const MEMCACHEDPORT = 6379;
-    private const MEMCACHEDSERVER = "memcached";
-    private const DBSERVER = "db";
-    private const MAX_SQL_LENGTH = 1000000;
     private $db;
     private $sqlTable;
+    private $environment;
+    private const MAX_SQL_LENGTH = 1000000;
 
     public function __construct($count)
     {
+        // We have a bunch of information from environment variables - they
+        // must all be set. We pull them into a private local array.
+        $varnames = ['APIURI', 'MYSQLSERVER', 'MYSQLUSER', 'MYSQLPASSWORD', 'MYSQLDATABASE',
+                     'REDISSERVER', 'REDISPORT', 'MEMCACHEDSERVER', 'MEMCACHEDPORT'];
+        foreach ($varnames as $var) {
+            if (getenv($var) === false) {
+                throw new Exception("Missing environment variable '$var'");
+            }
+            $this->environment[$var] = getenv($var);
+        }
+
         $this->memcached = new \Memcached();
-        $this->memcached->addServer(self::MEMCACHEDSERVER, self::MEMCACHEDPORT);
+        $this->memcached->addServer($this->environment['MEMCACHEDSERVER'], $this->environment['MEMCACHEDPORT']);
         $this->redis = new \Redis();
-        $this->redis->connect(self::REDISSERVER, self::REDISPORT);
-        $this->db = new \mysqli(self::DBSERVER, "root", "mypwd", "test_db");
+        $this->redis->connect($this->environment['REDISSERVER'], $this->environment['REDISPORT']);
+        $this->db = new \mysqli(
+            $this->environment['MYSQLSERVER'],
+            $this->environment['MYSQLUSER'],
+            $this->environment['MYSQLPASSWORD'],
+            $this->environment['MYSQLDATABASE']
+        );
 
         $this->api = new Client(); // Guzzle client
 
@@ -103,7 +115,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n = $n + (json_decode($this->api->request('GET', 'api/index.php')->getBody(), true));
+            $n = $n + (json_decode($this->api->request('GET', $this->environment['APIURI'])->getBody(), true));
             $i++;
         }
         return $n;
