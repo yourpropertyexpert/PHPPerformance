@@ -118,11 +118,10 @@ showResultRow(
     $classGetNFromAPI
 );
 
-foreach (
-    ['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
+$times = ['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
           'classGetNFromMemcached', 'classGetNFromRedis',
-          'classgetNFromDBQuery', 'classGetNFromAPI'] as $var
-) {
+          'classgetNFromDBQuery', 'classGetNFromAPI'];
+foreach ($times as $var) {
     $$var = number_format($$var, NUMBERFORMAT);
 }
 
