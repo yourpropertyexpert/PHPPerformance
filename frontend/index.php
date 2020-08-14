@@ -55,7 +55,7 @@ $starttime = microtime(true);
 $i = 0;
 $n = 0;
 while ($i < $Iterations) {
-    $n = $n+rand();
+    $n = $n + rand();
     $i++;
 }
 $totalLoop = microtime(true) - $starttime;
@@ -118,9 +118,11 @@ showResultRow(
     $classGetNFromAPI
 );
 
-foreach (['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
+foreach (
+    ['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
           'classGetNFromMemcached', 'classGetNFromRedis',
-          'classgetNFromDBQuery', 'classGetNFromAPI'] as $var) {
+          'classgetNFromDBQuery', 'classGetNFromAPI'] as $var
+) {
     $$var = number_format($$var, NUMBERFORMAT);
 }
 

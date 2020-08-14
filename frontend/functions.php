@@ -7,7 +7,7 @@ function loopMeUnparameterised()
     $n = 0;
     $i = 0;
     while ($i < $Iterations) {
-        $n = $n+rand();
+        $n = $n + rand();
         $i++;
     }
     return microtime(true) - $starttime;
@@ -19,7 +19,7 @@ function loopMeParameterised($count)
     $n = 0;
     $i = 0;
     while ($i < $count) {
-        $n = $n+rand();
+        $n = $n + rand();
         $i++;
     }
     return microtime(true) - $starttime;
