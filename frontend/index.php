@@ -1,6 +1,6 @@
 <?php
 
-const ITERATIONS = 500;
+const ITERATIONS = 10;
 const PRECISION = 5;
 const NUMBERFORMAT = 8;
 
@@ -42,13 +42,7 @@ if (empty($_SERVER['SCRIPT_URI'])) {
     $_SERVER['SCRIPT_URI'] .= "://$_SERVER[SERVER_NAME]$_SERVER[SCRIPT_NAME]";
 }
 
-echo '<p><i>Running ', number_format($Iterations), " iterations of each loop. You can change this number by ";
-if (strpos($_SERVER['QUERY_STRING'], 'I=') === false) {
-    echo "adding an I= parameter to this page (eg $_SERVER[SCRIPT_URI]?I=1234)";
-} else {
-    echo "changing the value of the I= parameter to this page";
-}
-echo ", or by modifying the constant at the top of frontend/index.php</i></p>";
+echo '<p><i>Running ', number_format($Iterations), " iterations of each loop.</p>";
 flush();
 
 $starttime = microtime(true);
@@ -135,6 +129,13 @@ foreach ($times as $var) {
 
 echo <<< PAGE_END
 </tbody></table>
+
+<h2>Run again</h2>
+<form>
+  <label for="I">Number of iterations</label><br>
+  <input type="text" id="fname" name="I" value="$Iterations">
+  <input type="submit" name="submit">
+
 
 <div id='container' style='width:100%; height:400px;'></div>
 <div id='container2' style='width:100%; height:400px;'></div>
@@ -304,5 +305,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
 
 PAGE_END;
