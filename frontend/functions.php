@@ -2,18 +2,15 @@
 
 function loopMeUnparameterised()
 {
+    $Iterations = (empty($_REQUEST['I']) || !is_numeric($_REQUEST['I'])) ? ITERATIONS : (int)$_REQUEST['I'];
     $starttime = microtime(true);
     $n = 0;
     $i = 0;
-    while ($i < ITERATIONS) {
+    while ($i < $Iterations) {
         $n = $n+rand();
         $i++;
     }
-    $unparameterisedFunction = round(microtime(true) - $starttime, PRECISION);
-    echo "<tr><td>Page: Unparameterised local function</td>";
-    echo "<td>$unparameterisedFunction s</td><td>1</td></tr>";
-    flush();
-    return $unparameterisedFunction;
+    return microtime(true) - $starttime;
 }
 
 function loopMeParameterised($count)
@@ -25,9 +22,13 @@ function loopMeParameterised($count)
         $n = $n+rand();
         $i++;
     }
-    $parameterisedFunction = round(microtime(true) - $starttime, PRECISION);
-    echo "<tr><td>Page: Parameterised local function</td>";
-    echo "<td>$parameterisedFunction s</td><td>1</td></tr>";
+    return microtime(true) - $starttime;
+}
+
+function showResultRow($technique, $time)
+{
+    global $totalLoop;
+    echo "<tr><td>$technique</td>";
+    echo '<td>', round($time, PRECISION), ' s</td><td>', round($time / $totalLoop, PRECISION), "</td></tr>\n";
     flush();
-    return $parameterisedFunction;
 }
