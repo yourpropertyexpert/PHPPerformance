@@ -1,6 +1,6 @@
 <?php
 
-const ITERATIONS = 500;
+const ITERATIONS = 10;
 const PRECISION = 5;
 const NUMBERFORMAT = 8;
 
@@ -42,13 +42,7 @@ if (empty($_SERVER['SCRIPT_URI'])) {
     $_SERVER['SCRIPT_URI'] .= "://$_SERVER[SERVER_NAME]$_SERVER[SCRIPT_NAME]";
 }
 
-echo '<p><i>Running ', number_format($Iterations), " iterations of each loop. You can change this number by ";
-if (strpos($_SERVER['QUERY_STRING'], 'I=') === false) {
-    echo "adding an I= parameter to this page (eg $_SERVER[SCRIPT_URI]?I=1234)";
-} else {
-    echo "changing the value of the I= parameter to this page";
-}
-echo ", or by modifying the constant at the top of frontend/index.php</i></p>";
+echo '<p><i>Running ', number_format($Iterations), " iterations of each loop.</p>";
 flush();
 
 $starttime = microtime(true);
@@ -106,7 +100,7 @@ $starttime = microtime(true);
 $n = $myclass->getNFromDBQuery($Iterations);
 $classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
 showResultRow(
-    'External: Single method call, that ran a loop calling a new SQL query each time',
+    'External: Single method call, that ran a loop calling a new MySQL query each time',
     $classgetNFromDBQuery
 );
 
@@ -114,8 +108,16 @@ $starttime = microtime(true);
 $n = $myclass->getNFromDBQueryInOneGo($Iterations);
 $classgetNFromDBQueryInOneGo = round(microtime(true) - $starttime, PRECISION);
 showResultRow(
-    'External: Single method call, that ran one SQL query then looped over the returned data',
+    'External: Single method call, that ran one MySQL query then looped over the returned data',
     $classgetNFromDBQueryInOneGo
+);
+
+$starttime = microtime(true);
+$n = $myclass->getNFromSQLite($Iterations);
+$classgetNFromSQLite = round(microtime(true) - $starttime, PRECISION);
+showResultRow(
+    'External: Single method call, that ran a loop calling a new SQLite query each time',
+    $classgetNFromSQLite
 );
 
 $starttime = microtime(true);
@@ -128,7 +130,8 @@ showResultRow(
 
 $times = ['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
           'classGetNFromMemcached', 'classGetNFromRedis',
-          'classgetNFromDBQuery', 'classgetNFromDBQueryInOneGo', 'classGetNFromAPI'];
+          'classgetNFromDBQuery', 'classgetNFromDBQueryInOneGo', 'classgetNFromSQLite',
+          'classGetNFromAPI'];
 foreach ($times as $var) {
     $$var = number_format($$var, NUMBERFORMAT);
 }
@@ -136,10 +139,17 @@ foreach ($times as $var) {
 echo <<< PAGE_END
 </tbody></table>
 
+<h2>Run again</h2>
+<form method='post'>
+  <label for="I">Number of iterations</label><br>
+  <input type="text" id="fname" name="I" value="$Iterations">
+  <input type="submit" name="submit">
+</form>
+
 <div id='container' style='width:100%; height:400px;'></div>
 <div id='container2' style='width:100%; height:400px;'></div>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
         var myChart = Highcharts.chart('container', {
             chart: {
                 type: 'column'
@@ -156,8 +166,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     'Method called once per iteration',
                     'Memcached',
                     'Redis',
-                    'SQL (n queries)',
-                    'SQL (one query)',
+                    'MySQL (n queries)',
+                    'MySQL (one query)',
+                    'SQLite',
                     'API',
                 ]
             },
@@ -185,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     0,
                     0,
                     0,
+                    0,
                     0
                 ]
             },
@@ -196,6 +208,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     0,
                     $classGetN,
                     $classGet1,
+                    0,
                     0,
                     0,
                     0,
@@ -215,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     $classGetNFromRedis,
                     $classgetNFromDBQuery,
                     $classgetNFromDBQueryInOneGo,
+                    $classgetNFromSQLite,
                     $classGetNFromAPI
                 ]
             }
@@ -224,85 +238,91 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-            var myChart = Highcharts.chart('container2', {
-                chart: {
-                    type: 'column'
-                },
-                title: {
-                    text: 'Timings in seconds - Linear axis'
-                },
-                xAxis: {
-                    categories: [
-                        'Simple loop',
-                        'Local unparameterised function',
-                        'Local parameterised function',
-                        'Loop inside a single method call',
-                        'Method called once per iteration',
-                        'Memcached',
-                        'Redis',
-                        'SQL (n queries)',
-                        'SQL (one query)',
-                        'API',
-                    ]
-                },
-                plotOptions: {
-                    column: {
-                        stacking: 'normal',
-                        dataLabels: {
-                            enabled: false
-                        }
+        var myChart = Highcharts.chart('container2', {
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Timings in seconds - Linear axis'
+            },
+            xAxis: {
+                categories: [
+                    'Simple loop',
+                    'Local unparameterised function',
+                    'Local parameterised function',
+                    'Loop inside a single method call',
+                    'Method called once per iteration',
+                    'Memcached',
+                    'Redis',
+                    'MySQL (n queries)',
+                    'MySQL (one query)',
+                    'SQLite',
+                    'API',
+                ]
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: false
                     }
-                },
-                series: [{
-                    name: 'On-page looping',
-                    data: [
-                        $totalLoop,
-                        $unparamtime,
-                        $paramtime,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ]
-                },
-                {
-                    name: 'Class-based looping',
-                    data: [
-                        0,
-                        0,
-                        0,
-                        $classGetN,
-                        $classGet1,
-                        0,
-                        0,
-                        0,
-                        0,
-                        0
-                    ]
-                },
-                {
-                    name: 'External data source',
-                    data: [
-                        0,
-                        0,
-                        0,
-                        0,
-                        0,
-                        $classGetNFromMemcached,
-                        $classGetNFromRedis,
-                        $classgetNFromDBQuery,
-                        $classgetNFromDBQueryInOneGo,
-                        $classGetNFromAPI
-                    ]
                 }
-            ]
-            });
+            },
+            series: [{
+                name: 'On-page looping',
+                data: [
+                    $totalLoop,
+                    $unparamtime,
+                    $paramtime,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                name: 'Class-based looping',
+                data: [
+                    0,
+                    0,
+                    0,
+                    $classGetN,
+                    $classGet1,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            },
+            {
+                name: 'External data source',
+                data: [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    $classGetNFromMemcached,
+                    $classGetNFromRedis,
+                    $classgetNFromDBQuery,
+                    $classgetNFromDBQueryInOneGo,
+                    $classgetNFromSQLite,
+                    $classGetNFromAPI
+                ]
+            }
+        ]
         });
+    });
 </script>
 </body>
 </html>
+
+
 
 PAGE_END;

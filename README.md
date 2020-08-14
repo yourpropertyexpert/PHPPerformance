@@ -22,8 +22,9 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - Class - Loop that called the method each time
 - Class - Single method call, that ran a loop calling class shared memcached each time
 - Class - Single method call, that ran a loop calling class shared Redis each time
-- Class - Single method call, that ran a loop calling a new SQL query each time
-- Class - Single method call, that made a single SQL query then looped over the returned data
+- Class - Single method call, that ran a loop calling a new MySQL query each time
+- Class - Single method call, that made a single MySQL query then looped over the returned data
+- Class - Single method call, that ran a loop calling a new SQLite query each time
 - Class - Single method call, that ran a loop calling class which uses Guzzle to call an API each time
 
 

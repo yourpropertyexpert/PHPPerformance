@@ -12,6 +12,8 @@ class Demo
     private $sqlTable;
     private $environment;
     private const MAX_SQL_LENGTH = 1000000;
+    private $sqlitedb;
+    private $sqlite;
 
     public function __construct($count)
     {
@@ -48,6 +50,15 @@ class Demo
                 ) ENGINE=InnoDB"
         );
 
+        $this->sqlitedb = tempnam(sys_get_temp_dir(), 'DB');
+        $this->sqlite = new \SQLite3($this->sqlitedb);
+        $this->sqlite->exec(
+            "CREATE TABLE IF NOT EXISTS $this->sqlTable (
+                ID INTEGER PRIMARY KEY,
+                Val INTEGER
+                )"
+        );
+
         // For speed, we build big  multi-value INSERTs, though we need to
         // be careful the statements don't get too big - we assume a
         // conservative maximum of 1MB
@@ -64,18 +75,22 @@ class Demo
             }
             if (strlen($sql) >= self::MAX_SQL_LENGTH) {
                 $this->db->query($sql);
+                $this->sqlite->exec($sql);
                 $sql = '';
             }
             $i++;
         }
         if ($sql) {
             $this->db->query($sql);
+            $this->sqlite->exec($sql);
         }
     }
 
     public function __destruct()
     {
         $this->db->query("DROP TABLE $this->sqlTable");
+        $this->sqlite->close();
+        unlink($this->sqlitedb);
     }
 
     public function getN($count)
@@ -150,6 +165,17 @@ class Demo
         while ($i < $count) {
             $n += $data[$i];
             ++$i;
+        }
+        return $n;
+    }
+
+    public function getNFromSQLite($count)
+    {
+        $i = 0;
+        $n = 0;
+        while ($i < $count) {
+            $n += $this->sqlite->querySingle("SELECT Val FROM $this->sqlTable WHERE ID=$i");
+            $i++;
         }
         return $n;
     }
