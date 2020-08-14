@@ -25,7 +25,7 @@ class Demo
 
         $this->api = new Client(); // Guzzle client
         $i = 0;
-        while ($i<$count) {
+        while ($i < $count) {
             $val = 1;
             $this->memcached->set($i, $val);
             $this->redis->set($i, $val);
@@ -38,7 +38,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n = $n+rand();
+            $n = $n + rand();
             $i++;
         }
         return $n;

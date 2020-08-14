@@ -45,7 +45,7 @@ steps:
   image: rvannauker/phpcpd
   commands:
   - phpcpd /drone/src
-- name: PSR2
+- name: PSR12
   image:  herloct/phpcs
   commands:
-  - phpcs --standard=PSR1,PSR2 /drone/src
+  - phpcs --standard=PSR1,PSR12 /drone/src
