@@ -29,7 +29,7 @@ echo <<< PAGE_TOP
 <h1>PHP Performance tester</h1>
 <p>The purpose of this code is to see how fast (relative to each other)
 different ways of “doing something” are in PHP. The code is deliberately ultra-lightweight,
-with no frameworks or classes.</p>
+with no frameworks.</p>
 <p>The “something” is generating a set of random numbers, and summing them.</p>
 </div>
 <div class="container">
