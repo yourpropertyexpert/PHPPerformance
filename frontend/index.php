@@ -131,11 +131,11 @@ echo <<< PAGE_END
 </tbody></table>
 
 <h2>Run again</h2>
-<form>
+<form method='post'>
   <label for="I">Number of iterations</label><br>
   <input type="text" id="fname" name="I" value="$Iterations">
   <input type="submit" name="submit">
-
+</form>
 
 <div id='container' style='width:100%; height:400px;'></div>
 <div id='container2' style='width:100%; height:400px;'></div>
