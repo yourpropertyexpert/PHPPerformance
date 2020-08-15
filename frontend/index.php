@@ -17,18 +17,25 @@ echo <<< PAGE_TOP
 <html lang="en-gb">
 <head>
   <script src="https://code.highcharts.com/highcharts.js"></script>
-  <style type='text/css'>
-    #resultsTable th, #resultsTable td { text-align: right; }
-    #resultsTable th:first-child, #resultsTable td:first-child { text-align: left; }
-  </style>
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
+
 </head>
 <body>
+<div class="container">
+<div class="jumbotron">
 <h1>PHP Performance tester</h1>
 <p>The purpose of this code is to see how fast (relative to each other)
 different ways of “doing something” are in PHP. The code is deliberately ultra-lightweight,
-with no frameworks or classes.</p>
+with no frameworks.</p>
 <p>The “something” is generating a set of random numbers, and summing them.</p>
-<p><i>Pre-seeding the various data structures, so that all we are seeing is the output times...</i></p>
+</div>
+<div class="container">
+<div class='alert alert-success'>
+    Pre-seeding the various data structures, so that all we are seeing is the output times...
+</div>
 
 PAGE_TOP;
 flush();
@@ -42,7 +49,7 @@ if (empty($_SERVER['SCRIPT_URI'])) {
     $_SERVER['SCRIPT_URI'] .= "://$_SERVER[SERVER_NAME]$_SERVER[SCRIPT_NAME]";
 }
 
-echo '<p><i>Running ', number_format($Iterations), " iterations of each loop.</p>";
+echo '<div class="alert alert-success">Running ', number_format($Iterations), " iterations of each loop.</div>";
 flush();
 
 $starttime = microtime(true);
@@ -56,7 +63,9 @@ $totalLoop = microtime(true) - $starttime;
 
 echo '<h2>Results</h2>';
 
-echo '<table id="resultsTable"><thead><th>Method</th><th>Time</th><th>Factor</th></thead><tbody>';
+echo '<table class="table table-striped" id="resultsTable">
+    <thead><th>Method</th><th>Time</th><th>Factor</th></thead>
+    <tbody>';
 
 showResultRow('Page: Simple loop', $totalLoop);
 
@@ -320,6 +329,8 @@ echo <<< PAGE_END
         });
     });
 </script>
+</div>
+</div>
 </body>
 </html>
 
