@@ -2,6 +2,7 @@
 
 const ITERATIONS = 10;
 const PRECISION = 5;
+const SERIES_NAMES = ['On-page looping', 'Class-based looping', 'External data source'];
 
 require_once '/var/www/vendor/autoload.php';
 
@@ -55,7 +56,7 @@ echo '<table class="table table-striped" id="resultsTable">
     <tbody>';
 
 $times = [];
-$series = array_fill(0, 3, array_fill(0, count(Ways(null, 'Index')), 0));
+$series = array_fill(0, count(SERIES_NAMES), array_fill(0, count(Ways(null, 'Index')), 0));
 // Loop over our configured ways. There's a bit of code duplication here, to
 // try and ensure that only what we're measuring is inside the timing loop,
 // not additional structural conditionals.
@@ -154,7 +155,7 @@ foreach (Ways(null, 'Graph') as $caption) {
 echo "            ]\n        },\n";
 
 $json = [];
-foreach (['On-page looping', 'Class-based looping', 'External data source'] as $i => $name) {
+foreach (SERIES_NAMES as $i => $name) {
     $json[] = ['name' => $name, 'data' => $series[$i]];
 }
 echo '        series: ', json_encode($json, JSON_PRETTY_PRINT), ",\n";
