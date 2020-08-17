@@ -16,6 +16,7 @@ echo <<< PAGE_TOP
 <!DOCTYPE html>
 <html lang="en-gb">
 <head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <link rel="stylesheet"
     href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
@@ -41,6 +42,7 @@ PAGE_TOP;
 flush();
 
 $Iterations = (empty($_REQUEST['I']) || !is_numeric($_REQUEST['I'])) ? ITERATIONS : (int)$_REQUEST['I'];
+$displayIterations = number_format($Iterations);
 $myclass = new MHL\Demo($Iterations);
 
 // $_SERVER['SCRIPT_URI'] is set by mod_rewrite, but not otherwise.
@@ -49,7 +51,7 @@ if (empty($_SERVER['SCRIPT_URI'])) {
     $_SERVER['SCRIPT_URI'] .= "://$_SERVER[SERVER_NAME]$_SERVER[SCRIPT_NAME]";
 }
 
-echo '<div class="alert alert-success">Running ', number_format($Iterations), " iterations of each loop.</div>";
+echo "<div class='alert alert-success'>Running $displayIterations iterations of each loop.</div>";
 flush();
 
 $starttime = microtime(true);
@@ -145,195 +147,158 @@ foreach ($times as $var) {
     $$var = number_format($$var, NUMBERFORMAT);
 }
 
-echo <<< PAGE_END
+echo <<< FORM_TOP
 </tbody></table>
 
 <h2>Run again</h2>
 <form method='post'>
-  <label for="I">Number of iterations</label><br>
-  <input type="text" id="fname" name="I" value="$Iterations">
-  <input type="submit" name="submit">
+  <p>
+    <label for="I">Number of iterations</label><br>
+    <input type="text" id="fname" name="I" value="$Iterations">
+    <input type="submit" name="submit" class='btn btn-primary'>
+  </p>
+
+  <p id='axisChoice' style='text-align: center;'>
+    Axis type:
+
+FORM_TOP;
+
+if (empty($_REQUEST['axis']) || ($_REQUEST['axis'] != 'lin')) { // log axis, default
+    echo "    <input type='hidden' id='axis' name='axis' value='log'>\n";
+    echo "    <button type='button' class='btn btn-primary active' id='logaxis' data-axis='log'> Logarithmic</button>";
+    echo "    <button type='button' class='btn btn-primary' id='linaxis' data-axis='lin'> Linear</button>";
+} else {
+    echo "    <input type='hidden' id='axis' name='axis' value='lin'>\n";
+    echo "    <button type='button' class='btn btn-primary' id='logaxis' data-axis='log'> Logarithmic</button>";
+    echo "    <button type='button' class='btn btn-primary active' id='linaxis' data-axis='lin'> Linear</button>";
+}
+
+echo <<< PAGE_END
+  </p>
 </form>
 
 <div id='container' style='width:100%; height:400px;'></div>
-<div id='container2' style='width:100%; height:400px;'></div>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var myChart = Highcharts.chart('container', {
-            chart: {
-                type: 'column'
-            },
-            title: {
-                text: 'Timings in seconds - Logarithmic axis'
-            },
-            xAxis: {
-                categories: [
-                    'Simple loop',
-                    'Local unparameterised function',
-                    'Local parameterised function',
-                    'Loop inside a single method call',
-                    'Method called once per iteration',
-                    'Memcached',
-                    'Redis',
-                    'MySQL (n queries)',
-                    'MySQL (one query)',
-                    'SQLite',
-                    'API',
-                ]
-            },
-            yAxis: {
-                type: 'logarithmic',
-                minorTickInterval: 'auto'
-            },
-            plotOptions: {
-                column: {
-                    stacking: 'normal',
-                    dataLabels: {
-                        enabled: false
-                    }
+var myChart;
+$(function() {
+    myChart = Highcharts.chart('container', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Timings'
+        },
+        subtitle: {
+            text: ($('#axis').val() == 'log') ? 'Logarithmic axis' : 'Linear axis'
+        },
+        xAxis: {
+            categories: [
+                'Simple loop',
+                'Local unparameterised function',
+                'Local parameterised function',
+                'Loop inside a single method call',
+                'Method called once per iteration',
+                'Memcached',
+                'Redis',
+                'MySQL (n queries)',
+                'MySQL (one query)',
+                'SQLite',
+                'API',
+            ]
+        },
+        yAxis: {
+            type: ($('#axis').val() == 'log') ? 'logarithmic' : 'linear',
+            minorTickInterval: 'auto',
+            title: {text: 'Time for $displayIterations iterations (s)'}
+        },
+        plotOptions: {
+            column: {
+                stacking: 'normal',
+                dataLabels: {
+                    enabled: false
                 }
-            },
-            series: [{
-                name: 'On-page looping',
-                data: [
-                    $totalLoop,
-                    $unparamtime,
-                    $paramtime,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ]
-            },
-            {
-                name: 'Class-based looping',
-                data: [
-                    0,
-                    0,
-                    0,
-                    $classGetN,
-                    $classGet1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ]
-            },
-            {
-                name: 'External data source',
-                data: [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    $classGetNFromMemcached,
-                    $classGetNFromRedis,
-                    $classgetNFromDBQuery,
-                    $classgetNFromDBQueryInOneGo,
-                    $classgetNFromSQLite,
-                    $classGetNFromAPI
-                ]
             }
-        ]
-        });
-    });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var myChart = Highcharts.chart('container2', {
-            chart: {
-                type: 'column'
-            },
-            title: {
-                text: 'Timings in seconds - Linear axis'
-            },
-            xAxis: {
-                categories: [
-                    'Simple loop',
-                    'Local unparameterised function',
-                    'Local parameterised function',
-                    'Loop inside a single method call',
-                    'Method called once per iteration',
-                    'Memcached',
-                    'Redis',
-                    'MySQL (n queries)',
-                    'MySQL (one query)',
-                    'SQLite',
-                    'API',
-                ]
-            },
-            plotOptions: {
-                column: {
-                    stacking: 'normal',
-                    dataLabels: {
-                        enabled: false
-                    }
+        },
+        tooltip: {
+            enabled: true,
+            formatter: function() {
+                var txt = '<span style="font-size: 12px"><b>';
+                txt += this.point.category + '</b></span><br/>';
+                if (this.point.y >= 1) {
+                    txt += Highcharts.numberFormat(this.point.y, 3) + ' s';
+                } else if (this.point.y >= 0.001) {
+                    txt += Highcharts.numberFormat(1000 * this.point.y, 3) + ' ms';
+                } else {
+                    txt += Highcharts.numberFormat(1e6 * this.point.y, 3) + ' μs';
                 }
-            },
-            series: [{
-                name: 'On-page looping',
-                data: [
-                    $totalLoop,
-                    $unparamtime,
-                    $paramtime,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ]
-            },
-            {
-                name: 'Class-based looping',
-                data: [
-                    0,
-                    0,
-                    0,
-                    $classGetN,
-                    $classGet1,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0
-                ]
-            },
-            {
-                name: 'External data source',
-                data: [
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    $classGetNFromMemcached,
-                    $classGetNFromRedis,
-                    $classgetNFromDBQuery,
-                    $classgetNFromDBQueryInOneGo,
-                    $classgetNFromSQLite,
-                    $classGetNFromAPI
-                ]
+                return txt;
             }
-        ]
-        });
+        },
+        series: [{
+            name: 'On-page looping',
+            data: [
+                $totalLoop,
+                $unparamtime,
+                $paramtime,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            name: 'Class-based looping',
+            data: [
+                0,
+                0,
+                0,
+                $classGetN,
+                $classGet1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            name: 'External data source',
+            data: [
+                0,
+                0,
+                0,
+                0,
+                0,
+                $classGetNFromMemcached,
+                $classGetNFromRedis,
+                $classgetNFromDBQuery,
+                $classgetNFromDBQueryInOneGo,
+                $classgetNFromSQLite,
+                $classGetNFromAPI
+            ]
+        }
+    ]
     });
+
+    $('#logaxis, #linaxis').click(function() {
+        console.log('Click: ' + this.id);
+        $('#axis').val($(this).data('axis'));
+        $('#axisChoice button').removeClass('active');
+        $(this).addClass('active');
+        myChart.setTitle(null, {text: ($('#axis').val() == 'log') ? 'Logarithmic axis' : 'Linear axis'}, false);
+        myChart.yAxis[0].update({ type: ($('#axis').val() == 'log') ? 'logarithmic' : 'linear' }, false);
+        myChart.redraw();
+    });
+});
 </script>
 </div>
 </div>
 </body>
 </html>
-
-
 
 PAGE_END;
