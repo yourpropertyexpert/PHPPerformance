@@ -71,11 +71,19 @@ echo '<table class="table table-striped" id="resultsTable">
 
 showResultRow('Page: Simple loop', $totalLoop);
 
-$unparamtime = loopMeUnparameterised();
-showResultRow('Page: Unparameterised local function', $unparamtime);
+$starttime = microtime(true);
+loopMeParameterised($Iterations);
+$paramtime = microtime(true) - $starttime;
+showResultRow('Page: Local function doing the iteration internally', $paramtime);
 
-$paramtime = loopMeParameterised($Iterations);
-showResultRow('Page: Parameterised local function', $paramtime);
+$starttime = microtime(true);
+$i = $n = 0;
+while ($i < $Iterations) {
+    $n = $n + loopMeParameterised(1);
+    $i++;
+}
+$unparamtime = microtime(true) - $starttime;
+showResultRow('Page: Local function called multiple times', $unparamtime);
 
 $starttime = microtime(true);
 $n = $myclass->getN($Iterations);
@@ -194,8 +202,8 @@ $(function() {
         xAxis: {
             categories: [
                 'Simple loop',
-                'Local unparameterised function',
-                'Local parameterised function',
+                'Local function called once',
+                'Local function called per iteration',
                 'Loop inside a single method call',
                 'Method called once per iteration',
                 'Memcached',
@@ -238,8 +246,8 @@ $(function() {
             name: 'On-page looping',
             data: [
                 $totalLoop,
-                $unparamtime,
                 $paramtime,
+                $unparamtime,
                 0,
                 0,
                 0,
@@ -286,7 +294,6 @@ $(function() {
     });
 
     $('#logaxis, #linaxis').click(function() {
-        console.log('Click: ' + this.id);
         $('#axis').val($(this).data('axis'));
         $('#axisChoice button').removeClass('active');
         $(this).addClass('active');
