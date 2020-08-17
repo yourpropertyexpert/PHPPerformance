@@ -2,12 +2,12 @@
 
 const ITERATIONS = 10;
 const PRECISION = 5;
-const NUMBERFORMAT = 8;
 
 require_once '/var/www/vendor/autoload.php';
 
-include 'classes.php';
-include 'functions.php';
+include_once 'classes.php';
+include_once 'functions.php';
+include_once 'ways.php';
 
 // We do NOT use a Template builder
 // This is because we want to keep flushing the output after each test type
@@ -45,23 +45,8 @@ $Iterations = (empty($_REQUEST['I']) || !is_numeric($_REQUEST['I'])) ? ITERATION
 $displayIterations = number_format($Iterations);
 $myclass = new MHL\Demo($Iterations);
 
-// $_SERVER['SCRIPT_URI'] is set by mod_rewrite, but not otherwise.
-if (empty($_SERVER['SCRIPT_URI'])) {
-    $_SERVER['SCRIPT_URI'] = (!empty($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] != 'off')) ? 'https' : 'http';
-    $_SERVER['SCRIPT_URI'] .= "://$_SERVER[SERVER_NAME]$_SERVER[SCRIPT_NAME]";
-}
-
 echo "<div class='alert alert-success'>Running $displayIterations iterations of each loop.</div>";
 flush();
-
-$starttime = microtime(true);
-$i = 0;
-$n = 0;
-while ($i < $Iterations) {
-    $n = $n + rand();
-    $i++;
-}
-$totalLoop = microtime(true) - $starttime;
 
 echo '<h2>Results</h2>';
 
@@ -69,90 +54,46 @@ echo '<table class="table table-striped" id="resultsTable">
     <thead><th>Method</th><th>Time</th><th>Factor</th></thead>
     <tbody>';
 
-showResultRow('Page: Simple loop', $totalLoop);
-
-$starttime = microtime(true);
-loopMeParameterised($Iterations);
-$paramtime = microtime(true) - $starttime;
-showResultRow('Page: Local function doing the iteration internally', $paramtime);
-
-$starttime = microtime(true);
-$i = $n = 0;
-while ($i < $Iterations) {
-    $n = $n + loopMeParameterised(1);
-    $i++;
-}
-$unparamtime = microtime(true) - $starttime;
-showResultRow('Page: Local function called multiple times', $unparamtime);
-
-$starttime = microtime(true);
-$n = $myclass->getN($Iterations);
-$classGetN = microtime(true) - $starttime;
-showResultRow('Class: Single method call that did the iteration in the method', $classGetN);
-
-$starttime = microtime(true);
-$i = 0;
-while ($i < $Iterations) {
-    $myclass->getN(1);
-    $i++;
-}
-$classGet1 = microtime(true) - $starttime;
-showResultRow('Class: Call the method multiple times from a loop in the calling page', $classGet1);
-
-$starttime = microtime(true);
-$n = $myclass->getNFromMemcached($Iterations);
-$classGetNFromMemcached = microtime(true) - $starttime;
-showResultRow(
-    'External: Single method call, that ran a loop calling class shared memcached each time',
-    $classGetNFromMemcached
-);
-
-$starttime = microtime(true);
-$n = $myclass->getNFromRedis($Iterations);
-$classGetNFromRedis = round(microtime(true) - $starttime, PRECISION);
-showResultRow(
-    'External: Single method call, that ran a loop calling class shared Redis each time',
-    $classGetNFromRedis
-);
-
-$starttime = microtime(true);
-$n = $myclass->getNFromDBQuery($Iterations);
-$classgetNFromDBQuery = round(microtime(true) - $starttime, PRECISION);
-showResultRow(
-    'External: Single method call, that ran a loop calling a new MySQL query each time',
-    $classgetNFromDBQuery
-);
-
-$starttime = microtime(true);
-$n = $myclass->getNFromDBQueryInOneGo($Iterations);
-$classgetNFromDBQueryInOneGo = round(microtime(true) - $starttime, PRECISION);
-showResultRow(
-    'External: Single method call, that ran one MySQL query then looped over the returned data',
-    $classgetNFromDBQueryInOneGo
-);
-
-$starttime = microtime(true);
-$n = $myclass->getNFromSQLite($Iterations);
-$classgetNFromSQLite = round(microtime(true) - $starttime, PRECISION);
-showResultRow(
-    'External: Single method call, that ran a loop calling a new SQLite query each time',
-    $classgetNFromSQLite
-);
-
-$starttime = microtime(true);
-$n = $myclass->getNFromAPI($Iterations);
-$classGetNFromAPI = round(microtime(true) - $starttime, PRECISION);
-showResultRow(
-    'External: Single method call, that ran a loop calling class shared API each time',
-    $classGetNFromAPI
-);
-
-$times = ['totalLoop', 'unparamtime', 'paramtime', 'classGetN', 'classGet1',
-          'classGetNFromMemcached', 'classGetNFromRedis',
-          'classgetNFromDBQuery', 'classgetNFromDBQueryInOneGo', 'classgetNFromSQLite',
-          'classGetNFromAPI'];
-foreach ($times as $var) {
-    $$var = number_format($$var, NUMBERFORMAT);
+$times = [];
+$series = array_fill(0, 3, array_fill(0, count(Ways(null, 'Index')), 0));
+// Loop over our configured ways. There's a bit of code duplication here, to
+// try and ensure that only what we're measuring is inside the timing loop,
+// not additional structural conditionals.
+foreach (Ways() as $index => $way) {
+    if ($index == 0) {
+        // handle the basic in-page loop separately
+        $starttime = microtime(true);
+        for ($i = $n = 0; $i < $Iterations; ++$i) {
+            $n += rand();
+        }
+        $times[$index] = microtime(true) - $starttime;
+    } elseif ($way['Loop']) {
+        if ($way['Class']) {
+            $starttime = microtime(true);
+            for ($i = $n = 0; $i < $Iterations; ++$i) {
+                $n += call_user_func([$myclass, $way['Function']], 1);
+            }
+            $times[$index] = microtime(true) - $starttime;
+        } else {
+            $starttime = microtime(true);
+            for ($i = $n = 0; $i < $Iterations; ++$i) {
+                $n += call_user_func($way['Function'], 1);
+            }
+            $times[$index] = microtime(true) - $starttime;
+        }
+    } else {
+        if ($way['Class']) {
+            $starttime = microtime(true);
+            $n += call_user_func([$myclass, $way['Function']], $Iterations);
+            $times[$index] = microtime(true) - $starttime;
+        } else {
+            $starttime = microtime(true);
+            $n += call_user_func($way['Function'], $Iterations);
+            $times[$index] = microtime(true) - $starttime;
+        }
+    }
+    showResultRow($way['Table'], $times[$index], $times[0]);
+    $series[$way['Series']][$index] = $times[$index];
 }
 
 echo <<< FORM_TOP
@@ -173,15 +114,19 @@ FORM_TOP;
 
 if (empty($_REQUEST['axis']) || ($_REQUEST['axis'] != 'lin')) { // log axis, default
     echo "    <input type='hidden' id='axis' name='axis' value='log'>\n";
-    echo "    <button type='button' class='btn btn-primary active' id='logaxis' data-axis='log'> Logarithmic</button>";
-    echo "    <button type='button' class='btn btn-primary' id='linaxis' data-axis='lin'> Linear</button>";
+    echo "    <button type='button' class='btn btn-primary active' id='logaxis' data-axis='log'> ";
+    echo "Logarithmic</button>\n";
+    echo "    <button type='button' class='btn btn-primary' id='linaxis' data-axis='lin'> ";
+    echo "Linear</button>\n";
 } else {
     echo "    <input type='hidden' id='axis' name='axis' value='lin'>\n";
-    echo "    <button type='button' class='btn btn-primary' id='logaxis' data-axis='log'> Logarithmic</button>";
-    echo "    <button type='button' class='btn btn-primary active' id='linaxis' data-axis='lin'> Linear</button>";
+    echo "    <button type='button' class='btn btn-primary' id='logaxis' data-axis='log'> ";
+    echo "Logarithmic</button>\n";
+    echo "    <button type='button' class='btn btn-primary active' id='linaxis' data-axis='lin'>";
+    echo " Linear</button>\n";
 }
 
-echo <<< PAGE_END
+echo <<< SCRIPT_TOP
   </p>
 </form>
 
@@ -201,19 +146,20 @@ $(function() {
         },
         xAxis: {
             categories: [
-                'Simple loop',
-                'Local function called once',
-                'Local function called per iteration',
-                'Loop inside a single method call',
-                'Method called once per iteration',
-                'Memcached',
-                'Redis',
-                'MySQL (n queries)',
-                'MySQL (one query)',
-                'SQLite',
-                'API',
-            ]
-        },
+
+SCRIPT_TOP;
+foreach (Ways(null, 'Graph') as $caption) {
+    echo "                '$caption',\n";
+}
+echo "            ]\n        },\n";
+
+$json = [];
+foreach (['On-page looping', 'Class-based looping', 'External data source'] as $i => $name) {
+    $json[] = ['name' => $name, 'data' => $series[$i]];
+}
+echo '        series: ', json_encode($json, JSON_PRETTY_PRINT), ",\n";
+
+echo <<< PAGE_END
         yAxis: {
             type: ($('#axis').val() == 'log') ? 'logarithmic' : 'linear',
             minorTickInterval: 'auto',
@@ -241,56 +187,7 @@ $(function() {
                 }
                 return txt;
             }
-        },
-        series: [{
-            name: 'On-page looping',
-            data: [
-                $totalLoop,
-                $paramtime,
-                $unparamtime,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ]
-        },
-        {
-            name: 'Class-based looping',
-            data: [
-                0,
-                0,
-                0,
-                $classGetN,
-                $classGet1,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-            ]
-        },
-        {
-            name: 'External data source',
-            data: [
-                0,
-                0,
-                0,
-                0,
-                0,
-                $classGetNFromMemcached,
-                $classGetNFromRedis,
-                $classgetNFromDBQuery,
-                $classgetNFromDBQueryInOneGo,
-                $classgetNFromSQLite,
-                $classGetNFromAPI
-            ]
         }
-    ]
     });
 
     $('#logaxis, #linaxis').click(function() {

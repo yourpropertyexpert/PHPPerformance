@@ -23,7 +23,7 @@ class Demo
                      'REDISSERVER', 'REDISPORT', 'MEMCACHEDSERVER', 'MEMCACHEDPORT'];
         foreach ($varnames as $var) {
             if (getenv($var) === false) {
-                throw new Exception("Missing environment variable '$var'");
+                throw new \Exception("Missing environment variable '$var'");
             }
             $this->environment[$var] = getenv($var);
         }
