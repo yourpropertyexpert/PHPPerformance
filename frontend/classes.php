@@ -7,13 +7,17 @@ use GuzzleHttp\Promise;
 
 class Demo
 {
-    private $memcached;
-    private $db;
-    private $sqlTable;
+    // Information about our connections (this is preserved in sleep)
     private $environment;
-    private const MAX_SQL_LENGTH = 1000000;
+    private $sqlTable;
     private $sqlitedb;
+    // Our connections themselves (not preserved)
+    private $memcached;
+    private $redis;
+    private $db;
     private $sqlite;
+    private $api;
+    private const MAX_SQL_LENGTH = 1000000;
 
     public function __construct($count)
     {
@@ -23,26 +27,18 @@ class Demo
                      'REDISSERVER', 'REDISPORT', 'MEMCACHEDSERVER', 'MEMCACHEDPORT'];
         foreach ($varnames as $var) {
             if (getenv($var) === false) {
-                throw new Exception("Missing environment variable '$var'");
+                throw new \Exception("Missing environment variable '$var'");
             }
             $this->environment[$var] = getenv($var);
         }
 
-        $this->memcached = new \Memcached();
-        $this->memcached->addServer($this->environment['MEMCACHEDSERVER'], $this->environment['MEMCACHEDPORT']);
-        $this->redis = new \Redis();
-        $this->redis->connect($this->environment['REDISSERVER'], $this->environment['REDISPORT']);
-        $this->db = new \mysqli(
-            $this->environment['MYSQLSERVER'],
-            $this->environment['MYSQLUSER'],
-            $this->environment['MYSQLPASSWORD'],
-            $this->environment['MYSQLDATABASE']
-        );
+        $this->sqlTable = uniqid('TB');
+        $this->sqlitedb = tempnam(sys_get_temp_dir(), 'DB');
 
-        $this->api = new Client(); // Guzzle client
+        // Now we have all the information, we can make our external connections.
+        $this->connectDBs();
 
         // Create a SQL table with a (hopefully!) unique name
-        $this->sqlTable = uniqid('TB');
         $this->db->query(
             "CREATE TABLE IF NOT EXISTS $this->sqlTable (
                 ID INT UNSIGNED NOT NULL PRIMARY KEY,
@@ -50,8 +46,6 @@ class Demo
                 ) ENGINE=InnoDB"
         );
 
-        $this->sqlitedb = tempnam(sys_get_temp_dir(), 'DB');
-        $this->sqlite = new \SQLite3($this->sqlitedb);
         $this->sqlite->exec(
             "CREATE TABLE IF NOT EXISTS $this->sqlTable (
                 ID INTEGER PRIMARY KEY,
@@ -86,7 +80,27 @@ class Demo
         }
     }
 
-    public function __destruct()
+    public function __sleep()
+    {
+        // When Bagpuss goes to sleep, all his friends go to sleep. But some of them
+        // aren't as well-behaved as Professor Yaffle, and they don't serialise properly.
+        // So we don't try to preserve external connections over a sleep-wake cycle, we
+        // just retain the information we need to recreate them when we wake up again.
+        return [
+            'sqlTable',
+            'environment',
+            'sqlitedb',
+            ];
+    }
+
+    public function __wakeup()
+    {
+        // Bagpuss has woken up, so his friends need to wake up. But since we don't
+        // preserve the external connection objects, we need to recreate them.
+        $this->connectDBs();
+    }
+
+    public function cleanup()
     {
         $this->db->query("DROP TABLE $this->sqlTable");
         $this->sqlite->close();
@@ -178,5 +192,27 @@ class Demo
             $i++;
         }
         return $n;
+    }
+
+    private function connectDBs()
+    {
+        // Make all the external connections (not just databases) - this is called to construct
+        // the object in the first place, and also to recreate the connections when we're woken up.
+        $this->memcached = new \Memcached();
+        $this->memcached->addServer($this->environment['MEMCACHEDSERVER'], $this->environment['MEMCACHEDPORT']);
+
+        $this->redis = new \Redis();
+        $this->redis->connect($this->environment['REDISSERVER'], $this->environment['REDISPORT']);
+
+        $this->db = new \mysqli(
+            $this->environment['MYSQLSERVER'],
+            $this->environment['MYSQLUSER'],
+            $this->environment['MYSQLPASSWORD'],
+            $this->environment['MYSQLDATABASE']
+        );
+
+        $this->sqlite = new \SQLite3($this->sqlitedb);
+
+        $this->api = new Client(); // Guzzle client
     }
 }
