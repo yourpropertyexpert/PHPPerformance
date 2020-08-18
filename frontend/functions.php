@@ -10,10 +10,3 @@ function loopMeParameterised($count)
     }
     return $n;
 }
-
-function showResultRow($technique, $time, $base)
-{
-    echo "<tr><td>$technique</td>";
-    echo '<td>', round($time, PRECISION), ' s</td><td>', round($time / $base, PRECISION), "</td></tr>\n";
-    flush();
-}

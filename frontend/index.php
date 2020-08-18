@@ -1,13 +1,8 @@
 <?php
 
 const ITERATIONS = 10;
-const PRECISION = 5;
 const SERIES_NAMES = ['On-page looping', 'Class-based looping', 'External data source'];
 
-require_once '/var/www/vendor/autoload.php';
-
-include_once 'classes.php';
-include_once 'functions.php';
 include_once 'ways.php';
 
 // We do NOT use a Template builder
@@ -23,7 +18,13 @@ echo <<< PAGE_TOP
     href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
     crossorigin="anonymous">
-
+  <style type='text/css'>
+    .left   {text-align:left;}
+    .right  {text-align:right;}
+    .centre {text-align:center;}
+    .hid    {display:none;}
+    .spinner{width:20px;height:20px;}
+  </style>
 </head>
 <body>
 <div class="container">
@@ -35,7 +36,7 @@ with no frameworks.</p>
 <p>The “something” is generating a set of random numbers, and summing them.</p>
 </div>
 <div class="container">
-<div class='alert alert-success'>
+<div class='alert alert-success' id='seeding'>
     Pre-seeding the various data structures, so that all we are seeing is the output times...
 </div>
 
@@ -44,57 +45,20 @@ flush();
 
 $Iterations = (empty($_REQUEST['I']) || !is_numeric($_REQUEST['I'])) ? ITERATIONS : (int)$_REQUEST['I'];
 $displayIterations = number_format($Iterations);
-$myclass = new MHL\Demo($Iterations);
 
-echo "<div class='alert alert-success'>Running $displayIterations iterations of each loop.</div>";
+echo "<div class='alert alert-success hid' id='running'>Running $displayIterations iterations of each loop.</div>";
 flush();
 
 echo '<h2>Results</h2>';
 
 echo '<table class="table table-striped" id="resultsTable">
-    <thead><th>Method</th><th>Time</th><th>Factor</th></thead>
+    <thead><th>Method</th><th class="right">Time</th><th class="right">Factor</th></thead>
     <tbody>';
 
-$times = [];
-$series = array_fill(0, count(SERIES_NAMES), array_fill(0, count(Ways(null, 'Index')), 0));
-// Loop over our configured ways. There's a bit of code duplication here, to
-// try and ensure that only what we're measuring is inside the timing loop,
-// not additional structural conditionals.
 foreach (Ways() as $index => $way) {
-    if ($index == 0) {
-        // handle the basic in-page loop separately
-        $starttime = microtime(true);
-        for ($i = $n = 0; $i < $Iterations; ++$i) {
-            $n += rand();
-        }
-        $times[$index] = microtime(true) - $starttime;
-    } elseif ($way['Loop']) {
-        if ($way['Class']) {
-            $starttime = microtime(true);
-            for ($i = $n = 0; $i < $Iterations; ++$i) {
-                $n += call_user_func([$myclass, $way['Function']], 1);
-            }
-            $times[$index] = microtime(true) - $starttime;
-        } else {
-            $starttime = microtime(true);
-            for ($i = $n = 0; $i < $Iterations; ++$i) {
-                $n += call_user_func($way['Function'], 1);
-            }
-            $times[$index] = microtime(true) - $starttime;
-        }
-    } else {
-        if ($way['Class']) {
-            $starttime = microtime(true);
-            $n += call_user_func([$myclass, $way['Function']], $Iterations);
-            $times[$index] = microtime(true) - $starttime;
-        } else {
-            $starttime = microtime(true);
-            $n += call_user_func($way['Function'], $Iterations);
-            $times[$index] = microtime(true) - $starttime;
-        }
-    }
-    showResultRow($way['Table'], $times[$index], $times[0]);
-    $series[$way['Series']][$index] = $times[$index];
+    echo "<tr><td>$way[Table]</td>\n";
+    echo "<td class='centre' id='Time_$index'><img class='spinner' src='spinner.svg'></td>\n";
+    echo "<td class='centre' id='Factor_$index'><img class='spinner' src='spinner.svg'></td></tr>\n";
 }
 
 echo <<< FORM_TOP
@@ -156,7 +120,7 @@ echo "            ]\n        },\n";
 
 $json = [];
 foreach (SERIES_NAMES as $i => $name) {
-    $json[] = ['name' => $name, 'data' => $series[$i]];
+    $json[] = ['name' => $name, 'data' => array_fill(0, count(Ways(null, 'Index')), 0)];
 }
 echo '        series: ', json_encode($json, JSON_PRETTY_PRINT), ",\n";
 
@@ -199,7 +163,28 @@ echo <<< PAGE_END
         myChart.yAxis[0].update({ type: ($('#axis').val() == 'log') ? 'logarithmic' : 'linear' }, false);
         myChart.redraw();
     });
+
+    // And do some work...
+    $.post('ajax.php', 'Setup=$Iterations', function(ajaxdata) {
+        $('#seeding, #running').toggle();
+        RunWay(0);
+    });
 });
+
+function RunWay(index)
+{
+    $.post('ajax.php', 'Way=' + index, function(ajaxdata) {
+        if ('index' in ajaxdata) {
+            $('#Time_' + index).html(ajaxdata.time).removeClass('centre').addClass('right');
+            $('#Factor_' + index).html(ajaxdata.factor).removeClass('centre').addClass('right');
+            myChart.series[ajaxdata.series].setData(ajaxdata.points);
+            RunWay(++index);
+        } else {
+            $.post('ajax.php', 'Teardown=Y');
+            $('#running').hide();
+        }
+    });
+}
 </script>
 </div>
 </div>
