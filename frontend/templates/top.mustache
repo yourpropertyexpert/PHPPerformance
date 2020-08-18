@@ -45,3 +45,49 @@
                         <td class='centre' id='Factor_{{index}}'><img class='spinner' src='spinner.svg'></td>
                     </tr>
                 {{/ways}}
+
+            </tbody>
+        </table>
+
+        <h2>Run again</h2>
+        <form method='post'>
+            <p>
+                <label for="I">Number of iterations</label><br>
+                <input type="text" id="fname" name="I" value="{{displayIterations}}">
+                <input type="submit" name="submit" class='btn btn-primary'>
+          </p>
+          <p id='axisChoice' style='text-align: center;'>
+            Axis type:
+            {{#linear}}
+                <input type='hidden' id='axis' name='axis' value='log'>
+                <button type='button' class='btn btn-primary active' id='logaxis' data-axis='log'>Logarithmic</button>
+                <button type='button' class='btn btn-primary' id='linaxis' data-axis='lin'>Linear</button>
+            {{/linear}}
+            {{^linear}}
+                <input type='hidden' id='axis' name='axis' value='lin'>
+                <button type='button' class='btn btn-primary' id='logaxis' data-axis='log'>Logarithmic</button>
+                <button type='button' class='btn btn-primary active' id='linaxis' data-axis='lin'>Linear</button>
+            {{/linear}}
+
+        </p>
+      </form>
+  </p>
+</form>
+
+<div id='container' style='width:100%; height:400px;'></div>
+<script>
+var myChart;
+$(function() {
+    myChart = Highcharts.chart('container', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Timings'
+        },
+        subtitle: {
+            text: ($('#axis').val() == 'log') ? 'Logarithmic axis' : 'Linear axis'
+        },
+        xAxis: {
+            categories: [{{#captions}}"{{.}}",{{/captions}}]
+        },
