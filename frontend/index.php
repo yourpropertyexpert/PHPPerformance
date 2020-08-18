@@ -3,63 +3,32 @@
 const ITERATIONS = 10;
 const SERIES_NAMES = ['On-page looping', 'Class-based looping', 'External data source'];
 
+require '/var/www/vendor/autoload.php';
 include_once 'ways.php';
 
-// We do NOT use a Template builder
-// This is because we want to keep flushing the output after each test type
 
-echo <<< PAGE_TOP
-<!DOCTYPE html>
-<html lang="en-gb">
-<head>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://code.highcharts.com/highcharts.js"></script>
-  <link rel="stylesheet"
-    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
-    crossorigin="anonymous">
-  <style type='text/css'>
-    .left   {text-align:left;}
-    .right  {text-align:right;}
-    .centre {text-align:center;}
-    .hid    {display:none;}
-    .spinner{width:20px;height:20px;}
-  </style>
-</head>
-<body>
-<div class="container">
-<div class="jumbotron">
-<h1>PHP Performance tester</h1>
-<p>The purpose of this code is to see how fast (relative to each other)
-different ways of “doing something” are in PHP. The code is deliberately ultra-lightweight,
-with no frameworks.</p>
-<p>The “something” is generating a set of random numbers, and summing them.</p>
-</div>
-<div class="container">
-<div class='alert alert-success' id='seeding'>
-    Pre-seeding the various data structures, so that all we are seeing is the output times...
-</div>
-
-PAGE_TOP;
-flush();
+$mloader = new Mustache_Loader_FilesystemLoader($_SERVER['DOCUMENT_ROOT'].'/templates');
+$mustache = new Mustache_Engine(['loader' => $mloader]);
+$mustachedata = [];
 
 $Iterations = (empty($_REQUEST['I']) || !is_numeric($_REQUEST['I'])) ? ITERATIONS : (int)$_REQUEST['I'];
 $displayIterations = number_format($Iterations);
-
-echo "<div class='alert alert-success hid' id='running'>Running $displayIterations iterations of each loop.</div>";
+$data["displayIterations"] = $displayIterations;
+echo $mustache->render("top", $data);
 flush();
 
-echo '<h2>Results</h2>';
-
-echo '<table class="table table-striped" id="resultsTable">
-    <thead><th>Method</th><th class="right">Time</th><th class="right">Factor</th></thead>
-    <tbody>';
-
+$data["ways"] = [];
 foreach (Ways() as $index => $way) {
-    echo "<tr><td>$way[Table]</td>\n";
-    echo "<td class='centre' id='Time_$index'><img class='spinner' src='spinner.svg'></td>\n";
-    echo "<td class='centre' id='Factor_$index'><img class='spinner' src='spinner.svg'></td></tr>\n";
+    $thisway = [];
+    $thisway["index"] = $index;
+    $thisway["description"] = $way["Table"];
+    $data["ways"][] = $thisway;
 }
+
+echo "<hr/><pre>";
+print_r ($data);
+echo "</pre>";
+
 
 echo <<< FORM_TOP
 </tbody></table>
@@ -123,6 +92,8 @@ foreach (SERIES_NAMES as $i => $name) {
     $json[] = ['name' => $name, 'data' => array_fill(0, count(Ways(null, 'Index')), 0)];
 }
 echo '        series: ', json_encode($json, JSON_PRETTY_PRINT), ",\n";
+
+
 
 echo <<< PAGE_END
         yAxis: {
