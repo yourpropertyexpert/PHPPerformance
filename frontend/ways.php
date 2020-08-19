@@ -97,9 +97,17 @@ function Ways($index = null, $element = null)
         }
 
         if ($element == 'Index') {
-            // an element of Index is a fake
+            // an element of 'Index' or 'IndexTable' are fakes
             return array_keys($Ways);
         }
+        if ($element == 'IndexTable') {
+            $ret = [];
+            foreach ($Ways as $index => $way) {
+                $ret[] = ['index' => $index, 'description' => $way['Table']];
+            }
+            return $ret;
+        }
+
         return array_map(function ($x) use ($element) {
             return $x[$element] ?? null;
         }, $Ways);
@@ -125,6 +133,7 @@ function Ways($index = null, $element = null)
     }
 
     if ($element == 'Index') {
+        // No point in faking "IndexTable" for a single value
         return $index;
     }
 
