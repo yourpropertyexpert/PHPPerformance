@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
+  <style type='text/css'>
+    .left   {text-align:left;}
+    .right  {text-align:right;}
+    .centre {text-align:center;}
+    .hid    {display:none;}
+    .spinner{width:20px;height:20px;}
+  </style>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>PHP Performance tester</h1>
+            <p>The purpose of this code is to see how fast (relative to each other) different ways of “doing something” are in PHP.
+                The code is deliberately ultra-lightweight, with no frameworks.</p>
+            <p>The “something” is generating a set of random numbers, and summing them.</p>
+        </div>
+    <div class="container">
+    <div class='alert alert-success' id='seeding'>
+        Pre-seeding the various data structures, so that all we are seeing is the output times...
+    </div>
+
+    <div class='alert alert-success hid' id='running'>Running {{displayIterations}} iterations of each loop.</div>
+
+
+        <h2>Results</h2>
+
+        <table class="table table-striped" id="resultsTable">
+            <thead>
+                <th>Method</th><th class="right">Time</th><th class="right">Factor</th>
+            </thead>
+            <tbody>
+                {{#ways}}
+                    <tr>
+                        <td>{{description}}</td>
+                        <td class='centre' id='Time_{{index}}'><img class='spinner' src='spinner.svg'></td>
+                        <td class='centre' id='Factor_{{index}}'><img class='spinner' src='spinner.svg'></td>
+                    </tr>
+                {{/ways}}
+
+            </tbody>
+        </table>
+
+        <h2>Run again</h2>
+        <form method='post'>
+            <p>
+                <label for="I">Number of iterations</label><br>
+                <input type="text" id="fname" name="I" value="{{displayIterations}}">
+                <input type="submit" name="submit" class='btn btn-primary'>
+          </p>
+          <p id='axisChoice' style='text-align: center;'>
+            Axis type:
+            {{#linear}}
+                <input type='hidden' id='axis' name='axis' value='log'>
+                <button type='button' class='btn btn-primary active' id='logaxis' data-axis='log'>Logarithmic</button>
+                <button type='button' class='btn btn-primary' id='linaxis' data-axis='lin'>Linear</button>
+            {{/linear}}
+            {{^linear}}
+                <input type='hidden' id='axis' name='axis' value='lin'>
+                <button type='button' class='btn btn-primary' id='logaxis' data-axis='log'>Logarithmic</button>
+                <button type='button' class='btn btn-primary active' id='linaxis' data-axis='lin'>Linear</button>
+            {{/linear}}
+
+        </p>
+      </form>
+  </p>
+</form>
+
+<div id='container' style='width:100%; height:400px;'></div>
+<script>
+var myChart;
+$(function() {
+    myChart = Highcharts.chart('container', {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: 'Timings'
+        },
+        subtitle: {
+            text: ($('#axis').val() == 'log') ? 'Logarithmic axis' : 'Linear axis'
+        },
+        xAxis: {
+            categories: [{{#captions}}"{{.}}",{{/captions}}]
+        },
