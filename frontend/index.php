@@ -1,7 +1,7 @@
 <?php
 
 const ITERATIONS = 10;
-const SERIES_NAMES = ['On-page looping', 'Class-based looping', 'External data source'];
+const SERIES_NAMES = ['On-page looping', 'Class-based null looping', 'Class-based looping with payload', 'External data source'];
 
 require '/var/www/vendor/autoload.php';
 include_once 'ways.php';
