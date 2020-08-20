@@ -107,6 +107,11 @@ class Demo
         unlink($this->sqlitedb);
     }
 
+    public function getNull($count)
+    {
+        return 0;
+    }
+
     public function getN($count)
     {
         $i = 0;
