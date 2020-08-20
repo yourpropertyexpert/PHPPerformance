@@ -109,7 +109,7 @@ class Demo
 
     public function getNull($count)
     {
-        return true;
+        return 0;
     }
 
     public function getN($count)
