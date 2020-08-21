@@ -223,7 +223,6 @@ class Demo
         $n = 0;
         $resultarray = $this->sqlite->query("SELECT Val FROM $this->sqlTable LIMIT $count");
         while ($thisone = $resultarray->fetchArray()) {
-            error_log("got one - ".$thisone[0]);
             $n += $thisone[0];
         }
         return $n;
