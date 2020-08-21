@@ -22,6 +22,11 @@ $series = [];
 foreach (SERIES_NAMES as $i => $name) {
     $series[] = ['name' => $name, 'data' => array_fill(0, count(Ways(null, 'Index')), 0)];
 }
+// And the list of ways (by index), in random order (except that zero must always come first, so we
+// can calculate factors)
+$wayOrder = range(1, count($series[0]['data']) - 1);
+shuffle($wayOrder);
+array_unshift($wayOrder, 0);
 
 // Mustache data
 $data = [
@@ -31,6 +36,7 @@ $data = [
          'linear' => (empty($_REQUEST['axis']) || ($_REQUEST['axis'] != 'lin')),
          'captions' => Ways(null, 'Graph'),
          'series' => json_encode($series, JSON_PRETTY_PRINT),
+         'wayorder' => json_encode($wayOrder),
         ];
 
 echo $mustache->render('page', $data);
