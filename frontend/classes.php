@@ -168,6 +168,24 @@ class Demo
         return $n;
     }
 
+    public function getNFromDBQueryPrepared($count)
+    {
+        $i = 0;
+        $n = 0;
+        $sql = "SELECT Val from $this->sqlTable WHERE ID = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $i);
+        while ($i < $count) {
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $number = $result->fetch_assoc()["Val"];
+            $n = $n + $number;
+            $i++;
+        }
+        return $n;
+    }
+
+
     public function getNFromDBQueryInOneGo($count)
     {
         // Get all the data from the database
