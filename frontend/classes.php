@@ -217,6 +217,18 @@ class Demo
         return $n;
     }
 
+    public function getNFromSQLiteInOneGo($count)
+    {
+        $i = 0;
+        $n = 0;
+        $resultarray = $this->sqlite->query("SELECT Val FROM $this->sqlTable LIMIT $count");
+        while ($thisone = $resultarray->fetchArray()) {
+            error_log("got one - ".$thisone[0]);
+            $n += $thisone[0];
+        }
+        return $n;
+    }
+
     private function connectDBs()
     {
         // Make all the external connections (not just databases) - this is called to construct
