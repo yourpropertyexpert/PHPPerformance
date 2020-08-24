@@ -84,6 +84,7 @@
 <div id='container' style='width:100%; height:400px;'></div>
 <script>
 var myChart;
+var wayOrder = {{{wayorder}}};
 $(function() {
     myChart = Highcharts.chart('container', {
         chart: {
@@ -147,19 +148,19 @@ $(function() {
 
 function RunWay(index)
 {
-$.post('ajax.php', 'Way=' + index, function(ajaxdata) {
-if ('index' in ajaxdata) {
-    $('#Time_' + index).html(ajaxdata.time).removeClass('centre').addClass('right');
-    $('#Factor_' + index).html(ajaxdata.factor).removeClass('centre').addClass('right');
-    myChart.series[ajaxdata.series].setData(ajaxdata.points);
-    RunWay(++index);
-    // TODO: ajaxdata.consolidated contains the figure from the mothership for this way and iteration count,
-    // we should add that to a graph
-} else {
-    $.post('ajax.php', 'Teardown=Y');
-    $('#running').hide();
-}
-});
+    if (index < wayOrder.length) {
+        $.post('ajax.php', 'Way=' + wayOrder[index], function(ajaxdata) {
+            $('#Time_' + wayOrder[index]).html(ajaxdata.time).removeClass('centre').addClass('right');
+            $('#Factor_' + wayOrder[index]).html(ajaxdata.factor).removeClass('centre').addClass('right');
+            myChart.series[ajaxdata.series].setData(ajaxdata.points);
+            RunWay(++index);
+        // TODO: ajaxdata.consolidated contains the figure from the mothership for this way and iteration count,
+        // we should add that to a graph
+        });
+    } else {
+        $.post('ajax.php', 'Teardown=Y');
+        $('#running').hide();
+    }
 }
 </script>
 </div>
