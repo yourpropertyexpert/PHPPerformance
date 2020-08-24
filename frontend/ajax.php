@@ -6,7 +6,9 @@ require_once 'classes.php';
 require_once 'functions.php';
 require_once 'ways.php';
 
-const PRECISION = 5;
+const PRECISION = 5;        // decimal places in returned results
+const HTTP_OK = 200;        // HTTP code for "OK"
+const MAGIC_LENGTH = 16;    // Length of our "magic number" (bytes)
 
 // We're always responding with JSON
 header('Content-Type: application/json');
@@ -22,7 +24,7 @@ if (!empty($_REQUEST['Setup']) && is_numeric($_REQUEST['Setup'])) {
     $_SESSION['Times'] = [];
     // We store most of the parameters for uploading, too
     $_SESSION['Version'] = md5_file('ways.php');
-    $_SESSION['Magic'] = (empty($_REQUEST['Upload'])) ? '' : bin2hex(openssl_random_pseudo_bytes(16));
+    $_SESSION['Magic'] = (empty($_REQUEST['Upload'])) ? '' : bin2hex(openssl_random_pseudo_bytes(MAGIC_LENGTH));
     echo '{}';  // empty JSON object
 } elseif (!empty($_REQUEST['Teardown'])) {
     // Clean up our database references
@@ -92,7 +94,7 @@ if (!empty($_REQUEST['Setup']) && is_numeric($_REQUEST['Setup'])) {
     }
     $Guz = new GuzzleHttp\Client();
     $response = $Guz->post('https://genericserver.link/mothership', [ 'form_params' => $data ]);
-    if ($response->getStatusCode() == 200) {  // HTTP OK
+    if ($response->getStatusCode() == HTTP_OK) {  // HTTP OK
         try {
             $consolidated = json_decode($response->getBody()->getContents(), true, JSON_THROW_ON_ERROR);
             if (!is_array($consolidated) || !isset($consolidated['OK'])) {
