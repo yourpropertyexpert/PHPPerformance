@@ -11,6 +11,7 @@
     .left   {text-align:left;}
     .right  {text-align:right;}
     .centre {text-align:center;}
+    .small  {font-size: 90%;}
     .hid    {display:none;}
     .spinner{width:20px;height:20px;}
   </style>
@@ -55,7 +56,13 @@
                 <label for="I">Number of iterations (cannot be zero)</label><br>
                 <input type="text" id="fname" name="I" value="{{iterations}}">
                 <input type="submit" name="submit" class='btn btn-primary'>
-          </p>
+            </p>
+            <p style='line-height: 1.2;'>
+                <label for='UploadOK'>Upload results: </label>
+                <input type='checkbox' name='UploadOK' id='UploadOK' {{checkUpload}}>.
+                Uploaded results are used to generate the “consolidated” results below. No
+                personally-identifiable information is stored if results are uploaded.
+            </p>
           <p id='axisChoice' style='text-align: center;'>
             Axis type:
             {{#linear}}
@@ -132,7 +139,7 @@ $(function() {
     });
 
     // And do some work...
-    $.post('ajax.php', 'Setup={{iterations}}', function(ajaxdata) {
+    $.post('ajax.php', 'Setup={{iterations}}&Upload={{checkUpload}}', function(ajaxdata) {
     $('#seeding, #running').toggle();
     RunWay(0);
     });
@@ -146,6 +153,8 @@ if ('index' in ajaxdata) {
     $('#Factor_' + index).html(ajaxdata.factor).removeClass('centre').addClass('right');
     myChart.series[ajaxdata.series].setData(ajaxdata.points);
     RunWay(++index);
+    // TODO: ajaxdata.consolidated contains the figure from the mothership for this way and iteration count,
+    // we should add that to a graph
 } else {
     $.post('ajax.php', 'Teardown=Y');
     $('#running').hide();

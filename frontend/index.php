@@ -31,6 +31,7 @@ $data = [
          'linear' => (empty($_REQUEST['axis']) || ($_REQUEST['axis'] != 'lin')),
          'captions' => Ways(null, 'Graph'),
          'series' => json_encode($series, JSON_PRETTY_PRINT),
+         'checkUpload' => (empty($_REQUEST['UploadOK'])) ? '' : 'checked',
         ];
 
 echo $mustache->render('page', $data);

@@ -20,6 +20,9 @@ if (!empty($_REQUEST['Setup']) && is_numeric($_REQUEST['Setup'])) {
     $_SESSION['Iterations'] = (int)$_REQUEST['Setup'];
     $_SESSION['Class'] = new MHL\Demo($_SESSION['Iterations']);
     $_SESSION['Times'] = [];
+    // We store most of the parameters for uploading, too
+    $_SESSION['Version'] = md5_file('ways.php');
+    $_SESSION['Magic'] = (empty($_REQUEST['Upload'])) ? '' : bin2hex(openssl_random_pseudo_bytes(16));
     echo '{}';  // empty JSON object
 } elseif (!empty($_REQUEST['Teardown'])) {
     // Clean up our database references
@@ -78,6 +81,29 @@ if (!empty($_REQUEST['Setup']) && is_numeric($_REQUEST['Setup'])) {
         }
     }
 
+    // Upload (we make the call even if we're not uploading, because we want the result)
+    $data = ['Magic' => $_SESSION['Magic'],
+             'Version' => $_SESSION['Version'],
+             'Iterations' => $_SESSION['Iterations'],
+             'Way' => $index,
+            ];
+    if ($_SESSION['Magic']) {
+        $data['Result'] = $_SESSION['Times'][$index];   // only send the result if we're uploading
+    }
+    $Guz = new GuzzleHttp\Client();
+    $response = $Guz->post('https://genericserver.link/mothership', [ 'form_params' => $data ]);
+    if ($response->getStatusCode() == 200) {  // HTTP OK
+        try {
+            $consolidated = json_decode($response->getBody()->getContents(), true, JSON_THROW_ON_ERROR);
+            if (!is_array($consolidated) || !isset($consolidated['OK'])) {
+                $consolidated = ['OK' => false, 'Error' => 'Data format error'];
+            }
+        } catch (\Exception $ex) {
+            $consolidated = ['OK' => false, 'Error' => 'Data decode error ' . $ex->getMessage()];
+        }
+    } else {
+        $consolidated = [ 'OK' => false, 'Error' => 'HTTP error ' . $response->getReasonPhrase() ];
+    }
 
     // and send back a result object
     echo json_encode([
@@ -86,5 +112,6 @@ if (!empty($_REQUEST['Setup']) && is_numeric($_REQUEST['Setup'])) {
         'factor' => round($_SESSION['Times'][$index] / $_SESSION['Times'][0], PRECISION),
         'series' => $way['Series'],
         'points' => $points,
+        'consolidated' => $consolidated,
         ]);
 }
