@@ -93,18 +93,22 @@ if (!empty($_REQUEST['Setup']) && is_numeric($_REQUEST['Setup'])) {
         $data['Result'] = $_SESSION['Times'][$index];   // only send the result if we're uploading
     }
     $Guz = new GuzzleHttp\Client();
-    $response = $Guz->post('https://genericserver.link/mothership', [ 'form_params' => $data ]);
-    if ($response->getStatusCode() == HTTP_OK) {  // HTTP OK
-        try {
-            $consolidated = json_decode($response->getBody()->getContents(), true, JSON_THROW_ON_ERROR);
-            if (!is_array($consolidated) || !isset($consolidated['OK'])) {
-                $consolidated = ['OK' => false, 'Error' => 'Data format error'];
+    try {
+        $response = $Guz->post('https://genericserver.link/mothership', [ 'form_params' => $data ]);
+        if ($response->getStatusCode() == HTTP_OK) {  // HTTP OK
+            try {
+                $consolidated = json_decode($response->getBody()->getContents(), true, JSON_THROW_ON_ERROR);
+                if (!is_array($consolidated) || !isset($consolidated['OK'])) {
+                    $consolidated = ['OK' => false, 'Error' => 'Data format error'];
+                }
+            } catch (\Exception $ex) {
+                $consolidated = ['OK' => false, 'Error' => 'Data decode error ' . $ex->getMessage()];
             }
-        } catch (\Exception $ex) {
-            $consolidated = ['OK' => false, 'Error' => 'Data decode error ' . $ex->getMessage()];
+        } else {
+            $consolidated = [ 'OK' => false, 'Error' => 'HTTP error ' . $response->getReasonPhrase() ];
         }
-    } else {
-        $consolidated = [ 'OK' => false, 'Error' => 'HTTP error ' . $response->getReasonPhrase() ];
+    } catch (\Exception $ex) {
+        $consolidated = ['OK' => false, 'Error' => 'Data upload error ' . $ex->getMessage()];
     }
 
     // and send back a result object
