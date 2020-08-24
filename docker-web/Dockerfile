@@ -19,6 +19,9 @@ COPY apache2.conf /etc/apache2/apache2.conf
 COPY php-extra.ini /usr/local/etc/php/conf.d
 COPY composer.json /var/www/
 
+COPY PRHLCAcert.crt /usr/local/share/ca-certificates
+RUN update-ca-certificates
+
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN cd /var/www/ && composer update --no-dev
 
