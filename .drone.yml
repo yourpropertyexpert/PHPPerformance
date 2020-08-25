@@ -46,6 +46,6 @@ steps:
   commands:
   - phpcpd /drone/src
 - name: PSR12
-  image:  herloct/phpcs
+  image:  cytopia/phpcs:latest-php7.3
   commands:
   - phpcs --standard=PSR1,PSR12 /drone/src
