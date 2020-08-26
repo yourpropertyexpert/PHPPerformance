@@ -59,10 +59,10 @@
             </p>
             <p style='line-height: 1.2;'>
                 <label for='UploadOK'>Upload results: </label>
-                <input type='checkbox' name='UploadOK' id='UploadOK' {{checkUpload}}>.
-                Uploaded results are used to generate the “consolidated” results below. No
-                personally-identifiable information is stored if results are uploaded.
+                <input type='checkbox' name='UploadOK' id='UploadOK' {{checkUpload}}>
             </p>
+          <p>If you upload as part of a test run, your stats will be shared with our public server. No personal information is stored even if you do this.</p>
+          <p>However, your results will be included in the analysis we run. You can see the results of that <a href='stats.php'>here</a></p>
           <p id='axisChoice' style='text-align: center;'>
             Axis type:
             {{#linear}}
