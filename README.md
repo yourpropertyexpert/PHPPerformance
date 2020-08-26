@@ -34,6 +34,7 @@ It gets that random number a lot of different ways. After each one, it outputs t
 # To Do (new "ways")
 
 - Calling a method that gets a number by making a Guzzle multi-call
+- Use curl directly, rather than via Guzzle
 
 # The "mothership"
 
