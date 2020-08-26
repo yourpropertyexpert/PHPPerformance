@@ -18,6 +18,7 @@ class AjaxHandler
     private const PRECISION = 5;        // decimal places in returned results
     private const HTTP_OK = 200;        // HTTP code for "OK"
     private const MAGIC_LENGTH = 16;    // Length of our "magic number" (bytes)
+    private const UPLOAD_URI = 'https://genericserver.link/mothership'; // the URI to which uploads are posted
 
     /**
      * @var int $Iterations The number of iterations of each test that will be run
@@ -166,7 +167,7 @@ class AjaxHandler
         }
         try {
             $Guz = new \GuzzleHttp\Client();
-            $response = $Guz->post('https://genericserver.link/mothership', [ 'form_params' => $data ]);
+            $response = $Guz->post(self::UPLOAD_URI, [ 'form_params' => $data ]);
             if ($response->getStatusCode() == self::HTTP_OK) {
                 try {
                     $consolidated = json_decode($response->getBody()->getContents(), true, JSON_THROW_ON_ERROR);
