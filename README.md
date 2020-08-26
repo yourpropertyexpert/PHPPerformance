@@ -13,7 +13,7 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - In practice, ignore the first run, which may include some results from a point at which the docker service were still spinning up... so once you see the "done" message, hit "refresh" and use those instead.
 
 
-# What methods are currently there
+# What "ways" are currently there
 
 - Page: Simple loop
 - Page: Local function doing the iteration internally
@@ -31,7 +31,7 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - External: Make a single SQLite query and then unpack the results
 - External: Single method call, that ran a loop calling class shared API each time
 
-# To Do (new algorithms)
+# To Do (new "ways")
 
 - Calling a method that gets a number by making a Guzzle multi-call
 
