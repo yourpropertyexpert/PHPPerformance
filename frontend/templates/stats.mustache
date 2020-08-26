@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
+  <style type='text/css'>
+    .left   {text-align:left;}
+    .right  {text-align:right;}
+    .centre {text-align:center;}
+    .small  {font-size: 90%;}
+    .hid    {display:none;}
+    .spinner{width:20px;height:20px;}
+  </style>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>PHP Performance tester</h1>
+            <p>The purpose of this code is to see how fast (relative to each other) different ways of “doing something” are in PHP.
+                The code is deliberately ultra-lightweight, with no frameworks.</p>
+            <p>This is a demonstration of the “consolidated” statistics.</p>
+        </div>
+    <div class="container">
+    {{error}}
+    <div class='alert alert-success'>
+        The graph below shows the effect of varying the number of iterations on the “relative” time
+        for each <i>way</i> (“relative” meaning the ratio of the time for that <i>way</i> to the
+        time for the simple loop).
+    </div>
+
+<div id='container' style='width:100%; height:500px;'></div>
+
+<script>
+var myChart;
+$(function() {
+    Highcharts.setOptions({lang: { thousandsSep: ',' }});
+    myChart = Highcharts.chart('container', {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: 'Effect of number of iterations on relative timings'
+        },
+        xAxis: {
+            type: 'logarithmic',
+            minorTickInterval: 'auto',
+            title: {text: 'Number of iterations (log scale)'}
+        },
+        yAxis: {
+            type: 'logarithmic',
+            minorTickInterval: 'auto',
+            title: {text: 'Relative time (log scale)'}
+        },
+        series: {{{series}}},
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: false
+                }
+            }
+        },
+        tooltip: {
+            enabled: true,
+            formatter: function() {
+                var txt = '<span style="font-size: 12px"><b>';
+                txt += this.series.name + '</b></span><br/>';
+                if (this.y < 1) {
+                    txt += Highcharts.numberFormat(1 / this.point.y, 2) + ' times faster';
+                } else {
+                    txt += Highcharts.numberFormat(this.point.y, 2) + ' times slower';
+                }
+                txt += ' than a basic loop, for approx ';
+                txt += this.x + ((this.x == 1) ? ' iteration' : ' iterations');
+                return txt;
+            }
+        }
+    });
+
+});
+</script>
+</div>
+</div>
+</body>
+</html>
