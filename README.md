@@ -13,23 +13,33 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - In practice, ignore the first run, which may include some results from a point at which the docker service were still spinning up... so once you see the "done" message, hit "refresh" and use those instead.
 
 
-# What methods are currently there
+# What methods are currently there- Page: Simple loop
 
-- A simple loop on a PHP page
-- Run a local function (parameterised) that does the loop
-- Run a local function (unparameterised - using constants to control number of iterations) that does the loop
-- Class - Single method call that did the iteration in a loop
-- Class - Loop that called the method each time
-- Class - Single method call, that ran a loop calling class shared memcached each time
-- Class - Single method call, that ran a loop calling class shared Redis each time
-- Class - Single method call, that ran a loop calling a new MySQL query each time
-- Class - Single method call, that made a single MySQL query then looped over the returned data
-- Class - Single method call, that ran a loop calling a new SQLite query each time
-- Class - Single method call, that ran a loop calling class which uses Guzzle to call an API each time
-
+- Page: Local function doing the iteration internally
+- Page: Local function called multiple times
+- Class: Null function called once (to assess overhead of just calling)
+- Class: Null function called n times (to assess overhead of just calling)
+- Class: Single method call that did the iteration in the method
+- Class: Call the method multiple times from a loop in the calling page
+- External: Single method call, that ran a loop calling class shared memcached each time
+- External: Single method call, that ran a loop calling class shared Redis each time
+- External: Single method call, n MySQL queries (not prepared statment)
+- External: Single method call, n MySQL queries against same prepared statement
+- External: Single method call, that ran one MySQL query then looped over the returned data
+- External: Run a loop calling a new SQLite query each time
+- External: Make a single SQLite query and then unpack the results
+- External: Single method call, that ran a loop calling class shared API each time
 
 # To Do (new algorithms)
 
 - Calling a method that gets a number by making a Guzzle multi-call
-- DB using prepared statements bound each time
-- DB using prepared statements bound once
+
+# The "mothership"
+
+When running a set of tests, the user has the option to "report the results back to the mothership."
+
+The mothership is a webservice in the cloud. Reporting to it does not store any personally identifying information.
+
+The mothership aggregates data about how the different "ways" have performed in given test runs. This is used to generate an index of relative performance at different sample sizes, which is viewable on the stats page in the frontend here.
+
+The mothership also stores a hash of the "ways" array, so that we can distinguish between different versions of the PHPPerformance software, and ensure we're comparing like with like.
