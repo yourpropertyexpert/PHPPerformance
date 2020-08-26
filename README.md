@@ -13,8 +13,9 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - In practice, ignore the first run, which may include some results from a point at which the docker service were still spinning up... so once you see the "done" message, hit "refresh" and use those instead.
 
 
-# What methods are currently there- Page: Simple loop
+# What methods are currently there
 
+- Page: Simple loop
 - Page: Local function doing the iteration internally
 - Page: Local function called multiple times
 - Class: Null function called once (to assess overhead of just calling)
