@@ -10,7 +10,7 @@ $mloader = new Mustache_Loader_FilesystemLoader("$_SERVER[DOCUMENT_ROOT]/templat
 $mustache = new Mustache_Engine(['loader' => $mloader]);
 
 // Mustache data
-$mustacheData = ['error' => '', 'series' => ''];
+$mustacheData = ['error' => '', 'series' => '', 'submissions' => ''];
 
 try {
     $Guz = new \GuzzleHttp\Client();
@@ -18,6 +18,7 @@ try {
     if ($response->getStatusCode() == HTTP_OK) {
         try {
             $chart = [];
+            $submissions = [];
             $data = json_decode($response->getBody()->getContents(), true, JSON_THROW_ON_ERROR);
             if (is_array($data) && isset($data['OK'])) {
                 if ($data['OK']) {
@@ -31,17 +32,24 @@ try {
                             continue;
                         }
                         $series = ['name' => $caption, 'data' => []];
+                        $submissions[$index] = 0;
                         // Now work through the list of iteration-counts for this way
                         foreach ($stats[$index] as $iterations => $results) {
                             // We need the relative time, so we can only use a result
                             // if we also have the corresponding result for way #0
                             if (isset($stats[0][$iterations]) && !empty($stats[0][$iterations]['Time'])) {
                                 $series['data'][] = [$iterations, $results['Time'] / $stats[0][$iterations]['Time'] ];
+                                $submissions[$index] += $results['Count'];
                             }
                         }
                         $chart[] = $series;
                     }
                     $mustacheData['series'] = json_encode($chart, JSON_NUMERIC_CHECK);
+                    // We have the number of submissions for each way - we present the smallest of those as the number
+                    // we're working from
+                    $submissions  = min($submissions);
+                    $mustacheData['submissions'] = 'based on ' . number_format($submissions);
+                    $mustacheData['submissions'] .= ($submissions == 1) ? ' submission' : ' submissions';
                 } else {
                     $mustacheData['error'] = "Statistics error $data[Error]";
                 }
