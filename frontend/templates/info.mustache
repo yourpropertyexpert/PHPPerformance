@@ -1,0 +1,46 @@
+{{> page_top}}
+
+    <h2>Statistics</h2>
+
+    <table class="table table-striped" id="resultsTable">
+        <thead>
+          <tr>
+            <th rowspan='2'>Version</th>
+            <th rowspan='2' class="right">Points</th>
+            <th rowspan='2' class="right">Ways</th>
+            <th colspan='2' class='centre'>Iterations</th>
+            <th colspan='2' class='centre'>Sessions</th>
+          </tr><tr>
+            <th class='right'>Min</th>
+            <th class='right'>Max</th>
+            <th class='right'>Total</th>
+            <th class='right'>Incomplete</th>
+          </tr>
+        </thead>
+        <tbody>
+            {{#versions}}
+                <tr>
+                    <td>{{Version}}</td>
+                    <td class='right'>{{Points}}</td>
+                    <td class='right'>{{Ways}}</td>
+                    <td class='right'>{{Least}}</td>
+                    <td class='right'>{{Most}}</td>
+                    <td class='right'>{{Sessions}}</td>
+                    <td class='right'>{{Incomplete}}</td>
+                </tr>
+            {{/versions}}
+        </tbody>
+    </table>
+
+    <p><b>Points</b> : the total number of data points for this version</p>
+    <p><b>Ways</b> : the number of ways reported in this session (strictly, the maximum number reported)</p>
+    <p><b>Iterations Min</b> : the smallest number of iterations reported with this version</p>
+    <p><b>Iterations Max</b> : the largest number of iterations reported with this version</p>
+    <p><b>Sessions Total</b> : the number of separate sessions reporting this version</p>
+    <p><b>Sessions Incomplete</b> : the number of incomplete sessions reporting this version (strictly, the number
+    of sessions which do not match the maximum number of ways reported)</p>
+
+</div>
+</div>
+</body>
+</html>
