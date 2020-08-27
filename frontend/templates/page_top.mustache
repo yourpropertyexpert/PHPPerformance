@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en-gb">
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <link rel="stylesheet"
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
+  <style type='text/css'>
+    .left   {text-align:left;}
+    .right  {text-align:right;}
+    .centre {text-align:center;}
+    .small  {font-size: 90%;}
+    .hid    {display:none;}
+    .spinner{width:20px;height:20px;}
+  </style>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>PHP Performance tester</h1>
+            <p>The purpose of this code is to see how fast (relative to each other) different ways of “doing something” are in PHP.
+                The code is deliberately ultra-lightweight, with no frameworks.</p>
+            <p>The “something” is generating a set of random numbers, and summing them.</p>
+        </div>
+    <div class="container">
+    {{#error}}
+    <div class='alert alert-danger'>
+        {{error}}
+    </div>
+    {{/error}}

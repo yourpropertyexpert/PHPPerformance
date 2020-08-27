@@ -40,4 +40,4 @@ $data = [
          'wayorder' => json_encode($wayOrder),
         ];
 
-echo $mustache->render('page', $data);
+echo $mustache->render('index', $data);
