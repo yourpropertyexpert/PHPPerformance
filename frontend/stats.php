@@ -66,8 +66,4 @@ try {
     $mustacheData['error'] = 'Data decode error ' . $ex->getMessage();
 }
 
-if ($mustacheData['error']) {
-    $mustacheData['error'] = "<div class='alert alert-danger'>$mustacheData[error]</div>";
-}
-
 echo $mustache->render('stats', $mustacheData);
