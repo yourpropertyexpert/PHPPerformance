@@ -13,6 +13,7 @@ class Demo
     private $sqlitedb;
     // Our connections themselves (not preserved)
     private $memcached;
+    private $localmemcached;
     private $redis;
     private $db;
     private $sqlite;
@@ -61,6 +62,7 @@ class Demo
         while ($i < $count) {
             $val = rand();
             $this->memcached->set($i, $val);
+            $this->localmemcached->set($i, $val);
             $this->redis->set($i, $val);
             if ($sql) {
                 $sql .= ",($i,$val)";
@@ -133,6 +135,18 @@ class Demo
         }
         return $n;
     }
+
+    public function getNFromLocalMemcached($count)
+    {
+        $i = 0;
+        $n = 0;
+        while ($i < $count) {
+            $n = $this->localmemcached->get($i);
+            $i++;
+        }
+        return $n;
+    }
+
     public function getNFromRedis($count)
     {
         $i = 0;
@@ -234,6 +248,10 @@ class Demo
         // the object in the first place, and also to recreate the connections when we're woken up.
         $this->memcached = new \Memcached();
         $this->memcached->addServer($this->environment['MEMCACHEDSERVER'], $this->environment['MEMCACHEDPORT']);
+
+        $this->localmemcached = new \Memcached();
+        $this->localmemcached->addServer('unix:/tmp/memcached.sock', '0');
+
 
         $this->redis = new \Redis();
         $this->redis->connect($this->environment['REDISSERVER'], $this->environment['REDISPORT']);

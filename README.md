@@ -22,7 +22,8 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - Class: Null function called n times (to assess overhead of just calling)
 - Class: Single method call that did the iteration in the method
 - Class: Call the method multiple times from a loop in the calling page
-- External: Single method call, that ran a loop calling class shared memcached each time
+- External: Single method call, that ran a loop calling local memcached on a unix socket each time
+- External: Single method call, that ran a loop calling a shared memcached over UDP each time
 - External: Single method call, that ran a loop calling class shared Redis each time
 - External: Single method call, n MySQL queries (not prepared statment)
 - External: Single method call, n MySQL queries against same prepared statement
