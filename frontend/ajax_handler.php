@@ -33,6 +33,10 @@ class AjaxHandler
      */
     private $Times;
     /**
+     * @var int[] $Totals The total of the numbers from each test in this run
+     */
+    private $Totals;
+    /**
      * @var string $Version An opaque string representing the version of the calling code in the uploaded results
      */
     private $Version;
@@ -92,6 +96,7 @@ class AjaxHandler
             return '{}';  // return an empty object if this Way doesn't exist
         }
 
+        srand($this->Worker->seed());
         if ($index == 0) {
             // handle the basic loop separately
             $starttime = microtime(true);
@@ -115,14 +120,12 @@ class AjaxHandler
             }
         } else {
             if ($way['Class']) {
-                $n = 0;
                 $starttime = microtime(true);
-                $n += call_user_func([$this->Worker, $way['Function']], $this->Iterations);
+                $n = call_user_func([$this->Worker, $way['Function']], $this->Iterations);
                 $this->Times[$index] = microtime(true) - $starttime;
             } else {
-                $n = 0;
                 $starttime = microtime(true);
-                $n += call_user_func($way['Function'], $this->Iterations);
+                $n = call_user_func($way['Function'], $this->Iterations);
                 $this->Times[$index] = microtime(true) - $starttime;
             }
         }
@@ -134,6 +137,12 @@ class AjaxHandler
             }
         }
 
+        $this->Totals[$index] = $n;
+        $total = (string)$n;
+        if ($way['CheckTotal']) {
+            $total .= ($n == $this->Totals[0]) ? ' - OK' : " - PROBLEM should be {$this->Totals[0]}";
+        }
+
         // and return back a result object, doing the upload in passing
         return json_encode([
             'index' => $index,
@@ -141,6 +150,7 @@ class AjaxHandler
             'factor' => round($this->Times[$index] / $this->Times[0], self::PRECISION),
             'series' => $way['Series'],
             'points' => $points,
+            'total' => $total,
             'consolidated' => $this->upload($index),
             ]);
     }

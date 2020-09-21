@@ -11,6 +11,8 @@ class Demo
     private $environment;
     private $sqlTable;
     private $sqlitedb;
+    // The seed for our random numbers (also preserved)
+    private $seed;
     // Our connections themselves (not preserved)
     private $memcached;
     private $localmemcached;
@@ -20,6 +22,7 @@ class Demo
     private $cURL;
     private $api;
     private const MAX_SQL_LENGTH = 1000000;
+    private const MICROSECONDS = 1000000;
 
     public function __construct($count)
     {
@@ -33,6 +36,8 @@ class Demo
             }
             $this->environment[$var] = getenv($var);
         }
+
+        $this->seed = (int)(MICROSECONDS * microtime(true));
 
         $this->sqlTable = uniqid('TB');
         $this->sqlitedb = tempnam(sys_get_temp_dir(), 'DB');
@@ -60,6 +65,7 @@ class Demo
         // conservative maximum of 1MB
         $sql = '';
         $i = 0;
+        srand($this->seed);
         while ($i < $count) {
             $val = rand();
             $this->memcached->set($i, $val);
@@ -93,6 +99,7 @@ class Demo
             'sqlTable',
             'environment',
             'sqlitedb',
+            'seed',
             ];
     }
 
@@ -101,6 +108,12 @@ class Demo
         // Bagpuss has woken up, so his friends need to wake up. But since we don't
         // preserve the external connection objects, we need to recreate them.
         $this->connectDBs();
+    }
+
+    public function seed()
+    {
+        // Return our random seed
+        return $this->seed;
     }
 
     public function cleanup()
@@ -131,7 +144,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n = $this->memcached->get($i);
+            $n = $n + $this->memcached->get($i);
             $i++;
         }
         return $n;
@@ -142,7 +155,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n = $this->localmemcached->get($i);
+            $n = $n + $this->localmemcached->get($i);
             $i++;
         }
         return $n;
@@ -153,7 +166,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n = $this->redis->get($i);
+            $n = $n + $this->redis->get($i);
             $i++;
         }
         return $n;
@@ -187,8 +200,7 @@ class Demo
         $n = 0;
         while ($i < $count) {
             $result = $this->db->query("SELECT Val FROM $this->sqlTable WHERE ID=$i");
-            $number = $result->fetch_row()[0];
-            $n = $n + $number;
+            $n = $n + $result->fetch_row()[0];
             $i++;
         }
         return $n;
@@ -204,8 +216,7 @@ class Demo
         while ($i < $count) {
             $stmt->execute();
             $result = $stmt->get_result();
-            $number = $result->fetch_assoc()["Val"];
-            $n = $n + $number;
+            $n = $n + $result->fetch_assoc()["Val"];
             $i++;
         }
         return $n;
@@ -226,7 +237,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n += $data[$i];
+            $n = $n + $data[$i];
             ++$i;
         }
         return $n;
@@ -237,7 +248,7 @@ class Demo
         $i = 0;
         $n = 0;
         while ($i < $count) {
-            $n += $this->sqlite->querySingle("SELECT Val FROM $this->sqlTable WHERE ID=$i");
+            $n = $n + $this->sqlite->querySingle("SELECT Val FROM $this->sqlTable WHERE ID=$i");
             $i++;
         }
         return $n;
@@ -249,7 +260,7 @@ class Demo
         $n = 0;
         $resultarray = $this->sqlite->query("SELECT Val FROM $this->sqlTable LIMIT $count");
         while ($thisone = $resultarray->fetchArray()) {
-            $n += $thisone[0];
+            $n = $n + $thisone[0];
         }
         return $n;
     }
