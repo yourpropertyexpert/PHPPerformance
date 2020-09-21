@@ -37,7 +37,7 @@ class Demo
             $this->environment[$var] = getenv($var);
         }
 
-        $this->seed = (int)(MICROSECONDS * microtime(true));
+        $this->seed = (int)(self::MICROSECONDS * microtime(true));
 
         $this->sqlTable = uniqid('TB');
         $this->sqlitedb = tempnam(sys_get_temp_dir(), 'DB');
