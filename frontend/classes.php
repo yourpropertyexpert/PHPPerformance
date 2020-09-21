@@ -22,6 +22,7 @@ class Demo
     private $cURL;
     private $api;
     private const MAX_SQL_LENGTH = 1000000;
+    private const MICROSECONDS = 1000000;
 
     public function __construct($count)
     {
@@ -36,7 +37,7 @@ class Demo
             $this->environment[$var] = getenv($var);
         }
 
-        $this->seed = (int)(1000000 * microtime(true));
+        $this->seed = (int)(MICROSECONDS * microtime(true));
 
         $this->sqlTable = uniqid('TB');
         $this->sqlitedb = tempnam(sys_get_temp_dir(), 'DB');
