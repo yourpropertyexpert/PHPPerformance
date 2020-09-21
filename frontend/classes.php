@@ -260,10 +260,15 @@ class Demo
         // the object in the first place, and also to recreate the connections when we're woken up.
         $this->memcached = new \Memcached();
         $this->memcached->addServer($this->environment['MEMCACHEDSERVER'], $this->environment['MEMCACHEDPORT']);
+        if (!$this->memcached->set('Test', time())) {
+            throw new \Exception('REMOMTE ' . $this->memcached->getResultMessage());
+        }
 
         $this->localmemcached = new \Memcached();
-        $this->localmemcached->addServer('unix:/tmp/memcached.sock', '0');
-
+        $this->localmemcached->addServer('/tmp/memcached.sock', '0');
+        if (!$this->localmemcached->set('Test', time())) {
+            throw new \Exception('LOCAL ' . $this->localmemcached->getResultMessage());
+        }
 
         $this->redis = new \Redis();
         $this->redis->connect($this->environment['REDISSERVER'], $this->environment['REDISPORT']);
