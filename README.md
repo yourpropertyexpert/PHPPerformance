@@ -1,6 +1,6 @@
 # PHPPerformance
 A test suite to compare the performance of various ways of data in PHP.
-For simulation purposes, it runs a "get a random number" 500 times.
+For simulation purposes, it runs a "get a random number" a configured number of times.
 It gets that random number a lot of different ways. After each one, it outputs the timings (flushing as it goes)
 
 
@@ -30,12 +30,12 @@ It gets that random number a lot of different ways. After each one, it outputs t
 - External: Single method call, that ran one MySQL query then looped over the returned data
 - External: Run a loop calling a new SQLite query each time
 - External: Make a single SQLite query and then unpack the results
-- External: Single method call, that ran a loop calling class shared API each time
+- External: Single method call, that ran a loop calling an API using cURL each time
+- External: Single method call, that ran a loop calling an API using Guzzle each time
 
 # To Do (new "ways")
 
 - Calling a method that gets a number by making a Guzzle multi-call
-- Use curl directly, rather than via Guzzle
 
 # The "mothership"
 
