@@ -17,6 +17,7 @@ class Demo
     private $redis;
     private $db;
     private $sqlite;
+    private $cURL;
     private $api;
     private const MAX_SQL_LENGTH = 1000000;
 
@@ -158,7 +159,18 @@ class Demo
         return $n;
     }
 
-    public function getNFromAPI($count)
+    public function getNFromAPIcURL($count)
+    {
+        $i = 0;
+        $n = 0;
+        while ($i < $count) {
+            $n = $n + json_decode(curl_exec($this->cURL));
+            $i++;
+        }
+        return $n;
+    }
+
+    public function getNFromAPIGuzzle($count)
     {
         $i = 0;
         $n = 0;
@@ -266,5 +278,12 @@ class Demo
         $this->sqlite = new \SQLite3($this->sqlitedb);
 
         $this->api = new Client(); // Guzzle client
+
+        $this->cURL = curl_init($this->environment['APIURI']);
+        $version = curl_version();
+        curl_setopt_array($this->cURL, [CURLOPT_RETURNTRANSFER => true,
+                                        CURLOPT_HEADER, false,
+                                        CURLOPT_USERAGENT => "cURL/$version[version] PHP/" . PHP_VERSION,
+                                       ]);
     }
 }
