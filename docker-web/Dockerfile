@@ -29,6 +29,9 @@ RUN update-ca-certificates
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN cd /var/www/ && composer update --no-dev
 
+# Set the primary group of the memcache user to www-data - see memcache.conf
+RUN usermod -g www-data memcache
+
 CMD service memcached start && apache2-foreground
 
 EXPOSE 80
